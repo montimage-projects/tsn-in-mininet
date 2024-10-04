@@ -7,67 +7,99 @@
 
 
 from mininet.net import Mininet
-from mininet.node import Node, Controller
-from mininet.cli import CLI
+from mininet.node import Node
 from mininet.log import setLogLevel, info
-from mininet.link import Link, TCLink
-from mininet.util import custom
+from mininet.link import Link
 
 
 
 def topology():
-    net = Mininet(controller = Controller)
-    #net = Mininet(controller=RemoteController)
-
-    #info( '*** Adding controller\n' )
-    net.addController( 'c0' )
     
-    # Instantiate network members
-    h1 = net.addHost('h1', mac='00:00:00:00:00:01')
-    h2 = net.addHost('h2', mac='00:00:00:00:00:02')
-    s1 = net.addSwitch('s1')
+    info( "*** Creating nodes\n" )
+    switch = Node( 's1', inNamespace=True )
+    h1 = Node( 'h1' )
+    h2 = Node( 'h2' )
 
-    # Create topology links
-    net.addLink(h1, s1)
-    net.addLink(h2, s1)
+    info( "*** Creating links\n" )
+    Link( h1, switch )
+    Link( h2, switch )
 
-    # Start the network
-    net.start()
+    info( "*** Configuring hosts\n" )
+    h1.setIP( '192.168.123.1/24' )
+    h2.setIP( '192.168.123.2/24' )
+    info( str( h1 ) + '\n' )
+    info( str( h2 ) + '\n' )
 
+
+    info( "*** Starting network\n" )
+
+    #switch.cmd( 'brctl delbr br0' )
+    switch.cmd( 'brctl addbr br0' )
+    for intf in switch.intfs.values():
+        # put into promiscuous mode, so the switch will see all incoming packets
+        switch.cmd( 'ip link set dev %s promisc on' % intf )
+        # assign the interface to the switch
+        switch.cmd( 'brctl addif br0 %s' % intf )
     
+    # bring up the switch
+    switch.cmd( 'ip link set dev br0 up' )
+    switch.cmdPrint('brctl show br0')
+    switch.cmdPrint('brctl showmacs br0')
+
+    info( "*** Enabling TSN network\n" )
     # class 0: traffic from h1
-    s1.cmd('iptables -t mangle -A POSTROUTING -p udp --dport 6666 -j CLASSIFY --set-class 0:1')
-    s1.cmd('iptables -t mangle -A POSTROUTING -p udp --dport 7777 -j CLASSIFY --set-class 0:0')
+    switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 6666 -j CLASSIFY --set-class 0:1')
+    switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 7777 -j CLASSIFY --set-class 0:0')
 
-    # Change queueing policy
-    s1.cmd('tc qdisc replace dev s1-eth2 parent root handle 100 taprio \
-        num_tc 2 \
-        map 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 \
-        queues 1@0 1@1 \
-        base-time 1554445635681310809 \
-        sched-entry S 01 800000 \
-        sched-entry S 02 200000 \
-        clockid CLOCK_TAI')
+    for intf in switch.intfs.values():
+        None
+        # set number of TX queues to 2
+        switch.cmd('ethtool -L %s tx 2' % intf)
+        # Change queueing policy
 
-    #CLI(net)
+        switch.cmdPrint('tc qdisc replace dev %s parent root handle 100 taprio \
+            num_tc 2 \
+            map 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 \
+            queues 1@0 1@1 \
+            base-time 1 \
+            sched-entry S 01 80000000 \
+            sched-entry S 02 20000000 \
+            clockid CLOCK_TAI' % intf)
+
+    # enable forwarding
+    switch.cmd('echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables')
+    switch.cmd('echo 1 > /proc/sys/net/ipv4/ip_forward')
     
     # Test connectivity between hosts
     print(h1.cmd( 'ping -c1', h2.IP() ))
     
     # run processes of h1 in background
-    h2.cmd('iperf3 --server --daemon --one-off --port 6666')
-    h2.cmd('iperf3 --server --daemon --one-off --port 7777')
-    h2.popen('tcpdump -udp -w /home/mmt/share_vbox/h2.pcap')
+    h2.cmd('timeout 60 iperf3 --server --daemon --one-off --port 6666')
+    h2.cmd('timeout 60 iperf3 --server --daemon --one-off --port 7777')
+    #
+    h2.cmd('timeout 60 tcpdump -w h2.pcap --time-stamp-precision=nano udp &')
+    
+    #switch.cmd('timeout 60 tcpdump -i s1-veth1 -w switch.pcap --time-stamp-precision=nano udp &')
     
     # run first iperf3 in background
-    h1.popen(f"iperf3 -c { h2.IP() } -u -b 1000K -p 6666 -t 5")
-    h1.cmd(  f'iperf3 -c { h2.IP() } -u -b 1000K -p 7777 -t 5')
+    h1.cmd("iperf3 -c %s --udp --length 100 -p 6666 -t 1 &" % h2.IP())
+    h1.cmd('iperf3 -c %s --udp --length 100 -p 7777 -t 1'   % h2.IP())
 
-    #CLI(net)
+    #
+    switch.cmdPrint('ifconfig -a')
+    for intf in switch.intfs.values():
+        switch.cmd('tc -s -d class show dev %s' % intf)
 
-    net.stop()
+    info( "*** Stopping network\n" )
+    h2.cmdPrint('ls -lrat ')
+    switch.cmd( 'ip link set dev br0 down' )
+    switch.cmd( 'brctl delbr br0' )
+    switch.deleteIntfs()
+    info( '\n' )
 
 
 if __name__ == '__main__':
     setLogLevel( 'debug' )
+
+    Mininet.init()
     topology()
