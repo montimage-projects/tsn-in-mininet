@@ -3,3 +3,4 @@
 ..project
 /.project
 /.externalToolBuilders/
+/rsync.sh

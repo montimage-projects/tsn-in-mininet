@@ -1,10 +1,19 @@
 #!/usr/bin/python3
 
+# Setup a simple TSN testbed using taprio qdisc. The testbed is emulated using mininet.
+# It has 2 hosts connected via a bridge.
+#    h1 <----> switch <-----> h2
 # 
+# TAPRIO is set at each output port of the switch.
 #
 #
-# https://duerrfk.github.io/posts/2019/04/10/software_tsn_switch.html
-
+# Contact:
+#   huunghia.nguyen@montimage.com
+#
+# References:
+#   https://duerrfk.github.io/posts/2019/04/10/software_tsn_switch.html
+#   https://gist.github.com/jeez/bd3afeff081ba64a695008dd8215866f
+#   https://tsn.readthedocs.io/qdiscs.html
 
 from mininet.net import Mininet
 from mininet.node import Node
@@ -47,7 +56,13 @@ def topology():
     switch.cmdPrint('brctl showmacs br0')
 
     info( "*** Enabling TSN network\n" )
-    # class 0: traffic from h1
+    
+    # Use iptables to set priority of packet skb based on packet's destination port
+    # "--set-class" might sound confusing as it actually set priority of the packet
+    # 
+    # We have 2 classes of priorities:
+    #  - class/priority 0 (0:0): UDP packets having dst port = 7777
+    #  - class/priority 1 (0:1): UDP packets having dst port = 6666
     switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 6666 -j CLASSIFY --set-class 0:1')
     switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 7777 -j CLASSIFY --set-class 0:0')
 
@@ -55,8 +70,22 @@ def topology():
         None
         # set number of TX queues to 2
         switch.cmd('ethtool -L %s tx 2' % intf)
+        
+        
         # Change queueing policy
-
+        #
+        # "num_tc 2": there are 2 traffic classes
+        #
+        # "map 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1": maps skb priorities 0..15 to a specified traffic class (TC)
+        # - map priority 0 (first bit from the left) to TC1
+        # - map priority 1 to TC0
+        # - and priorities 2-15 to TC1 (16 mappings for 16 possible traffic classes).
+        #
+        # "queues 1@0 1@1": map traffic classes to TX queues of the network device.
+        # Its values use the format count@offset
+        # - map the firs traffic class (TC0) to 1 queue strating at offset 0 (first queue)
+        # - map the second traffic class (TC1) to 1 queue starting at offset 1 (second queue)
+        
         switch.cmdPrint('tc qdisc replace dev %s parent root handle 100 taprio \
             num_tc 2 \
             map 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 \
@@ -66,14 +95,14 @@ def topology():
             sched-entry S 02 20000000 \
             clockid CLOCK_TAI' % intf)
 
-    # enable forwarding
+    # enable packet forwarding
     switch.cmd('echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables')
     switch.cmd('echo 1 > /proc/sys/net/ipv4/ip_forward')
     
     # Test connectivity between hosts
     print(h1.cmd( 'ping -c1', h2.IP() ))
     
-    # run processes of h1 in background
+    # run processes in background: start iperf3 server & tcpdump
     h2.cmd('timeout 60 iperf3 --server --daemon --one-off --port 6666')
     h2.cmd('timeout 60 iperf3 --server --daemon --one-off --port 7777')
     #
@@ -85,17 +114,19 @@ def topology():
     h1.cmd("iperf3 -c %s --udp --length 100 -p 6666 -t 1 &" % h2.IP())
     h1.cmd('iperf3 -c %s --udp --length 100 -p 7777 -t 1'   % h2.IP())
 
-    #
+    #show statistic
     switch.cmdPrint('ifconfig -a')
     for intf in switch.intfs.values():
         switch.cmd('tc -s -d class show dev %s' % intf)
 
+
+    # clean the network
     info( "*** Stopping network\n" )
     h2.cmdPrint('ls -lrat ')
     switch.cmd( 'ip link set dev br0 down' )
     switch.cmd( 'brctl delbr br0' )
     switch.deleteIntfs()
-    info( '\n' )
+
 
 
 if __name__ == '__main__':
@@ -103,3 +134,5 @@ if __name__ == '__main__':
 
     Mininet.init()
     topology()
+
+    info( 'bye' )
