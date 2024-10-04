@@ -20,7 +20,12 @@ from mininet.node import Node
 from mininet.log import setLogLevel, info
 from mininet.link import Link
 
-
+# to plot statistic
+from scapy.all import rdpcap, UDP
+import matplotlib.pyplot as plt
+# avoid showing plot window
+import matplotlib as mpl
+mpl.use('Agg')
 
 def topology():
     
@@ -127,6 +132,60 @@ def topology():
     switch.cmd( 'brctl delbr br0' )
     switch.deleteIntfs()
 
+def plot_packet_arrival_times(pcap_file):
+    # Read the PCAP file
+    packets = rdpcap(pcap_file)
+    
+    # Dictionary to store the arrival times per UDP destination port
+    port_arrival_times = {}
+
+    first_time = 0
+    RANGE = [500*1000000, 1000*1000000]
+    # Iterate over the packets
+    for pkt in packets:
+        # Check if the packet has a UDP layer
+        if UDP in pkt:
+            # Extract the packet timestamp and destination port
+            arrival_time = pkt.time # e.g., 1712073023.619379
+            arrival_time = int( arrival_time * 1000000 * 1000) # in nanosecond
+            
+            # take into account only the packets arriving in RANGE
+            if first_time == 0:
+                first_time = arrival_time
+            
+            offset = arrival_time - first_time
+            if offset < RANGE[0]:
+                continue
+            if  offset > RANGE[1]:
+                break;
+
+            dst_port = pkt[UDP].dport
+
+            # Add the arrival time to the list for the destination port
+            if dst_port not in port_arrival_times:
+                port_arrival_times[dst_port] = []
+            port_arrival_times[dst_port].append(arrival_time)
+
+    # Plotting
+    plt.figure(figsize=(10, 6))
+    
+    # Create a colormap for the different ports
+    ports = list(port_arrival_times.keys())
+    colors = ["red", "blue"]
+    
+    # Assign a color for each port and plot its vertical lines
+    for idx, port in enumerate(ports):
+        times = port_arrival_times[port]
+        color = colors[idx]  # Get the color from the colormap based on index
+        plt.vlines(times, ymin=0, ymax=port, colors=color, alpha=0.6, label=f'Port {port}')
+
+    # Formatting the plot
+    plt.title('Packet Arrival Times by UDP Destination Port')
+    plt.xlabel('Arrival Time (us)')
+    plt.ylabel('UDP Destination Port')
+    plt.legend(loc='upper right', bbox_to_anchor=(1.15, 1))
+    plt.grid(True)
+    plt.savefig( "single_switch.arrival_time.pdf", dpi=30, format='pdf', bbox_inches='tight')
 
 
 if __name__ == '__main__':
@@ -135,4 +194,5 @@ if __name__ == '__main__':
     Mininet.init()
     topology()
 
+    plot_packet_arrival_times("h2.pcap")
     info( 'bye' )
