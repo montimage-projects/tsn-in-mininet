@@ -47,6 +47,12 @@ def topology():
     #configure host
     h1.setDefaultRoute("dev eth")
     h2.setDefaultRoute("dev eth")
+    
+    #disable offloading which may cause incorrect TCP checksum
+    for off in ["rx", "tx", "sg", "gso"]:
+        cmd = "ethtool --offload eth %s off" % off
+        h1.cmd(cmd)
+        h2.cmd(cmd)
 
     info( str( h1 ) + '\n' )
     info( str( h2 ) + '\n' )
@@ -63,27 +69,30 @@ def topology():
     
     switch.cmdPrint("ifconfig")
     
-    # --log-console
-    switch.cmd("simple_switch -i 1@h1-eth -i 2@h2-eth --pcap=. basic.json &")
+    # debug
+    #switch.cmd("simple_switch -i 1@h1-eth -i 2@h2-eth  --log-console --pcap=. basic.json &")
+    #switch.cmd("simple_switch -i 1@h1-eth -i 2@h2-eth basic.json &")
+    # no debug, optimally compiled
+    switch.cmd("/home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch -i 1@h1-eth -i 2@h2-eth basic.json &")
     # wait for the switch
     time.sleep(2)
     #switch.cmdPrint("telnet localhost 9090")
     #return
     
-    switch.cmdPrint("lsof -i")
-    
-    # config syntax:
-    #    key => parameters
-    # for example:
-    #    ipDst => macDst port
-    switch.cmdPrint("echo 'table_add ipv4_lpm ipv4_forward 192.168.123.1 => 00:00:00:00:00:11 1' | simple_switch_CLI")
-    switch.cmdPrint("echo 'table_add ipv4_lpm ipv4_forward 192.168.123.2 => 00:00:00:00:00:22 2' | simple_switch_CLI")
+    # check the switch is online
+    #switch.cmdPrint("lsof -i")
 
 
     info( "*** Enabling TSN network\n" )
     # Use iptables to set priority of packet skb based on packet's destination port
     # "--set-class" might sound confusing as it actually set priority of the packet
     # 
+    # We have 2 classes of priorities:
+    #  - class/priority 0 (0:0): UDP packets having dst port = 7777
+    #  - class/priority 1 (0:1): UDP packets having dst port = 6666
+    switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 6666 -j CLASSIFY --set-class 0:1')
+    switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 7777 -j CLASSIFY --set-class 0:0')
+
     for intf in switch.intfs.values():
         None
         # set number of TX queues to 2
@@ -109,8 +118,8 @@ def topology():
             map 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 \
             queues 1@0 1@1 \
             base-time 1 \
-            sched-entry S 01 8000000 \
-            sched-entry S 02 2000000 \
+            sched-entry S 01 200000 \
+            sched-entry S 02 800000 \
             clockid CLOCK_TAI' % intf)
 
     # enable packet forwarding
@@ -119,16 +128,19 @@ def topology():
 
     # Test connectivity between hosts
     print(h1.cmd( 'ping -c1', h2.IP() ))
-    
+
+
     # run processes in background: start iperf3 server & tcpdump
-    #h2.cmd('timeout 60 iperf3 --server --daemon --one-off --port 6666')
-    #h2.cmd('timeout 60 iperf3 --server --daemon --one-off --port 7777')
+    h2.cmd('timeout 60 iperf3 --server --daemon --one-off --port 6666')
+    h2.cmd('timeout 60 iperf3 --server --daemon --one-off --port 7777')
     #
-    h2.cmd('timeout 60 tcpdump -w h2.pcap --time-stamp-precision=nano &')
+    h2.cmd('timeout 60 tcpdump -w h2.pcap --time-stamp-precision=nano udp &')
     h2.cmdPrint("ifconfig -a")
     # run first iperf3 in background
-    #h1.cmd("iperf3 -c %s --udp --length 100 --bitrate 400M/30 -p 6666 -t 2 &" % h2.IP())
-    #h1.cmd('iperf3 -c %s --udp --length 100 --bitrate 100M/30 -p 7777 -t 2'   % h2.IP())
+    # --bitrate 0: as fast as possible
+    # --length 1460: send 1460 bytes on each packet
+    h1.cmd("iperf3 -c %s --udp --length 16 --bitrate 0 -p 6666 -t 1 &" % h2.IP())
+    h1.cmd('iperf3 -c %s --udp --length 16 --bitrate 0 -p 7777 -t 1'   % h2.IP())
 
     ##show statistic
     switch.cmdPrint('ifconfig -a')
@@ -139,6 +151,7 @@ def topology():
     info( "*** Stopping network\n" )
     switch.deleteIntfs()
 
+
 def plot_packet_arrival_times(pcap_file):
     # Read the PCAP file
     packets = rdpcap(pcap_file)
@@ -146,8 +159,10 @@ def plot_packet_arrival_times(pcap_file):
     # Dictionary to store the arrival times per UDP destination port
     port_arrival_times = {}
 
+    print("loading packets' timestamp ...")
     first_time = 0
-    RANGE = [500*1000000, 600*1000000]
+    # range of 5 ms
+    RANGE = [500*1000000, 505*1000000]
     # Iterate over the packets
     for pkt in packets:
         # Check if the packet has a UDP layer
@@ -160,39 +175,44 @@ def plot_packet_arrival_times(pcap_file):
             if first_time == 0:
                 first_time = arrival_time
             
+            #use offset to plot
             offset = arrival_time - first_time
+            
+            # take into account only packets in RANGE
             if offset < RANGE[0]:
                 continue
             if  offset > RANGE[1]:
                 break;
+
+            offset -= RANGE[0]
 
             dst_port = pkt[UDP].dport
 
             # Add the arrival time to the list for the destination port
             if dst_port not in port_arrival_times:
                 port_arrival_times[dst_port] = []
-            port_arrival_times[dst_port].append(arrival_time)
+            port_arrival_times[dst_port].append(offset)
 
+    print("plotting ...")
     # Plotting
     plt.figure(figsize=(10, 6))
     
     # Create a colormap for the different ports
-    ports = list(port_arrival_times.keys())
-    colors = ["red", "blue"]
+    colors = {7777: "red", 6666: "blue"}
     
     # Assign a color for each port and plot its vertical lines
-    for idx, port in enumerate(ports):
+    for port in port_arrival_times:
         times = port_arrival_times[port]
-        color = colors[idx]  # Get the color from the colormap based on index
-        plt.vlines(times, ymin=0, ymax=port, colors=color, alpha=0.6, label=f'Port {port}')
+        color = colors[port]  # Get the color from the colormap based on index
+        plt.vlines(times, ymin=0, ymax=1, colors=color, alpha=0.6, label=f'Port {port}')
 
     # Formatting the plot
     plt.title('Packet Arrival Times by UDP Destination Port')
     plt.xlabel('Arrival Time (us)')
-    plt.ylabel('UDP Destination Port')
+    plt.ylabel('packet')
     plt.legend(loc='upper right', bbox_to_anchor=(1.15, 1))
     plt.grid(True)
-    plt.savefig( "single_switch.arrival_time.pdf", dpi=30, format='pdf', bbox_inches='tight')
+    plt.savefig( "single_switch.arrival_time.png", dpi=30, format='png', bbox_inches='tight')
 
 
 if __name__ == '__main__':
@@ -201,5 +221,5 @@ if __name__ == '__main__':
     Mininet.init()
     topology()
 
-    #plot_packet_arrival_times("h2.pcap")
+    plot_packet_arrival_times("h2.pcap")
     info( 'bye' )
