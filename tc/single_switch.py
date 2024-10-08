@@ -5,6 +5,7 @@
 #    h1 <----> switch <-----> h2
 # 
 # TAPRIO is set at each output port of the switch.
+# Switch is created using brctl command (sudo apt install bridge-utils) 
 #
 #
 # Contact:
@@ -96,8 +97,8 @@ def topology():
             map 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 \
             queues 1@0 1@1 \
             base-time 1 \
-            sched-entry S 01 80000000 \
-            sched-entry S 02 20000000 \
+            sched-entry S 01 800000 \
+            sched-entry S 02 200000 \
             clockid CLOCK_TAI' % intf)
 
     # enable packet forwarding
@@ -111,13 +112,19 @@ def topology():
     h2.cmd('timeout 60 iperf3 --server --daemon --one-off --port 6666')
     h2.cmd('timeout 60 iperf3 --server --daemon --one-off --port 7777')
     #
-    h2.cmd('timeout 60 tcpdump -w h2.pcap --time-stamp-precision=nano udp &')
+    h2.cmd('timeout 60 tcpdump -w h2.pcap  --time-stamp-precision=nano udp &')
     
     #switch.cmd('timeout 60 tcpdump -i s1-veth1 -w switch.pcap --time-stamp-precision=nano udp &')
     
     # run first iperf3 in background
-    h1.cmd("iperf3 -c %s --udp --length 100 -p 6666 -t 1 &" % h2.IP())
-    h1.cmd('iperf3 -c %s --udp --length 100 -p 7777 -t 1'   % h2.IP())
+    # --bitrate 0: as fast as possible
+    # --length 16: send only 16 byte on each packet
+    #h1.cmd("iperf3 -c %s --udp --length 16 --bitrate 0 -p 6666 -t 1 &" % h2.IP())
+    #h1.cmd('iperf3 -c %s --udp --length 16 --bitrate 0 -p 7777 -t 1'   % h2.IP())
+    
+    # Max Gbps
+    h1.cmd("iperf3 -c %s --udp --length 1460 --bitrate 0 -p 6666 -t 1 &" % h2.IP())
+    h1.cmd('iperf3 -c %s --udp --length 1460 --bitrate 0 -p 7777 -t 1'   % h2.IP())
 
     #show statistic
     switch.cmdPrint('ifconfig -a')
@@ -139,8 +146,10 @@ def plot_packet_arrival_times(pcap_file):
     # Dictionary to store the arrival times per UDP destination port
     port_arrival_times = {}
 
+    print("loading packets' timestamp ...")
     first_time = 0
-    RANGE = [500*1000000, 1000*1000000]
+    # range of 5 ms
+    RANGE = [100*1000000, 105*1000000]
     # Iterate over the packets
     for pkt in packets:
         # Check if the packet has a UDP layer
@@ -153,7 +162,10 @@ def plot_packet_arrival_times(pcap_file):
             if first_time == 0:
                 first_time = arrival_time
             
+            #use offset to plot
             offset = arrival_time - first_time
+            
+            # take into account only packets in RANGE
             if offset < RANGE[0]:
                 continue
             if  offset > RANGE[1]:
@@ -164,25 +176,25 @@ def plot_packet_arrival_times(pcap_file):
             # Add the arrival time to the list for the destination port
             if dst_port not in port_arrival_times:
                 port_arrival_times[dst_port] = []
-            port_arrival_times[dst_port].append(arrival_time)
+            port_arrival_times[dst_port].append(offset)
 
+    print("plotting ...")
     # Plotting
     plt.figure(figsize=(10, 6))
     
     # Create a colormap for the different ports
-    ports = list(port_arrival_times.keys())
-    colors = ["red", "blue"]
+    colors = {7777: "red", 6666: "blue"}
     
     # Assign a color for each port and plot its vertical lines
-    for idx, port in enumerate(ports):
+    for port in port_arrival_times:
         times = port_arrival_times[port]
-        color = colors[idx]  # Get the color from the colormap based on index
-        plt.vlines(times, ymin=0, ymax=port, colors=color, alpha=0.6, label=f'Port {port}')
+        color = colors[port]  # Get the color from the colormap based on index
+        plt.vlines(times, ymin=0, ymax=1, colors=color, alpha=0.6, label=f'Port {port}')
 
     # Formatting the plot
     plt.title('Packet Arrival Times by UDP Destination Port')
     plt.xlabel('Arrival Time (us)')
-    plt.ylabel('UDP Destination Port')
+    plt.ylabel('packet')
     plt.legend(loc='upper right', bbox_to_anchor=(1.15, 1))
     plt.grid(True)
     plt.savefig( "single_switch.arrival_time.pdf", dpi=30, format='pdf', bbox_inches='tight')

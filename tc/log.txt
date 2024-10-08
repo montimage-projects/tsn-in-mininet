@@ -1,0 +1,250 @@
+montimage@montimage-Precision-3570:~/hn/tsn-in-mininet/tc$ time sudo python3 single_switch.py
+Unable to init server: Could not connect: Connection refused
+Unable to init server: Could not connect: Connection refused
+
+(single_switch.py:1900820): Gdk-CRITICAL **: 11:56:49.028: gdk_cursor_new_for_display: assertion 'GDK_IS_DISPLAY (display)' failed
+*** Setting resource limits
+*** Creating nodes
+*** errRun: ['which', 'mnexec'] 
+/usr/bin/mnexec
+  0*** errRun: ['which', 'ifconfig'] 
+/usr/sbin/ifconfig
+  0_popen ['mnexec', '-cdn', 'env', 'PS1=\x7f', 'bash', '--norc', '--noediting', '-is', 'mininet:s1'] 1900901*** s1 : ('unset HISTFILE; stty -echo; set +m',)
+unset HISTFILE; stty -echo; set +m
+_popen ['mnexec', '-cdn', 'env', 'PS1=\x7f', 'bash', '--norc', '--noediting', '-is', 'mininet:h1'] 1900903*** h1 : ('unset HISTFILE; stty -echo; set +m',)
+unset HISTFILE; stty -echo; set +m
+_popen ['mnexec', '-cdn', 'env', 'PS1=\x7f', 'bash', '--norc', '--noediting', '-is', 'mininet:h2'] 1900905*** h2 : ('unset HISTFILE; stty -echo; set +m',)
+unset HISTFILE; stty -echo; set +m
+*** Creating links
+*** h1 : ('ip link add name h1-eth0 type veth peer name s1-eth0 netns 1900901',)
+
+added intf h1-eth0 (0) to node h1
+moving h1-eth0 into namespace for h1 
+*** h1 : ('ifconfig', 'h1-eth0', 'up')
+
+added intf s1-eth0 (0) to node s1
+moving s1-eth0 into namespace for s1 
+*** s1 : ('ifconfig', 's1-eth0', 'up')
+*** h2 : ('ip link add name h2-eth0 type veth peer name s1-eth1 netns 1900901',)
+
+added intf h2-eth0 (0) to node h2
+moving h2-eth0 into namespace for h2 
+*** h2 : ('ifconfig', 'h2-eth0', 'up')
+
+added intf s1-eth1 (1) to node s1
+moving s1-eth1 into namespace for s1 
+*** s1 : ('ifconfig', 's1-eth1', 'up')
+*** Configuring hosts
+*** h1 : ('ifconfig', 'h1-eth0', '192.168.123.1/24', 'up')
+*** h2 : ('ifconfig', 'h2-eth0', '192.168.123.2/24', 'up')
+h1
+h2
+*** Starting network
+*** s1 : ('brctl addbr br0',)
+*** s1 : ('ip link set dev s1-eth0 promisc on',)
+*** s1 : ('brctl addif br0 s1-eth0',)
+*** s1 : ('ip link set dev s1-eth1 promisc on',)
+*** s1 : ('brctl addif br0 s1-eth1',)
+*** s1 : ('ip link set dev br0 up',)
+*** s1 : ('brctl show br0',)
+bridge name	bridge id		STP enabled	interfaces
+br0		8000.628810426d42	no		s1-eth0
+							s1-eth1
+*** s1 : ('brctl showmacs br0',)
+port no	mac addr		is local?	ageing timer
+  2	62:88:10:42:6d:42	yes		   0.00
+  2	62:88:10:42:6d:42	yes		   0.00
+  1	72:5d:bd:b6:b6:25	yes		   0.00
+  1	72:5d:bd:b6:b6:25	yes		   0.00
+*** Enabling TSN network
+*** s1 : ('iptables -t mangle -A POSTROUTING -p udp --dport 6666 -j CLASSIFY --set-class 0:1',)
+*** s1 : ('iptables -t mangle -A POSTROUTING -p udp --dport 7777 -j CLASSIFY --set-class 0:0',)
+*** s1 : ('ethtool -L s1-eth0 tx 2',)
+*** s1 : ('tc qdisc replace dev s1-eth0 parent root handle 100 taprio             num_tc 2             map 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1             queues 1@0 1@1             base-time 1             sched-entry S 01 800000             sched-entry S 02 200000             clockid CLOCK_TAI',)
+*** s1 : ('ethtool -L s1-eth1 tx 2',)
+*** s1 : ('tc qdisc replace dev s1-eth1 parent root handle 100 taprio             num_tc 2             map 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1             queues 1@0 1@1             base-time 1             sched-entry S 01 800000             sched-entry S 02 200000             clockid CLOCK_TAI',)
+*** s1 : ('echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables',)
+*** s1 : ('echo 1 > /proc/sys/net/ipv4/ip_forward',)
+*** h1 : ('ping -c1', '192.168.123.2')
+PING 192.168.123.2 (192.168.123.2) 56(84) bytes of data.
+64 bytes from 192.168.123.2: icmp_seq=1 ttl=64 time=1010 ms
+
+--- 192.168.123.2 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 1009.904/1009.904/1009.904/0.000 ms
+PING 192.168.123.2 (192.168.123.2) 56(84) bytes of data.
+64 bytes from 192.168.123.2: icmp_seq=1 ttl=64 time=1010 ms
+
+--- 192.168.123.2 ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 1009.904/1009.904/1009.904/0.000 ms
+
+*** h2 : ('timeout 60 iperf3 --server --daemon --one-off --port 6666',)
+*** h2 : ('timeout 60 iperf3 --server --daemon --one-off --port 7777',)
+*** h2 : ('timeout 60 tcpdump -w h2.pcap  --time-stamp-precision=nano udp &',)
+*** h1 : ('iperf3 -c 192.168.123.2 --udp --length 1460 --bitrate 0 -p 6666 -t 1 &',)
+*** h1 : ('iperf3 -c 192.168.123.2 --udp --length 1460 --bitrate 0 -p 7777 -t 1',)
+warning: UDP block size 1460 exceeds TCP MSS 1448, may result in fragmentation / drops
+warning: UDP block size 1460 exceeds TCP MSS 1448, may result in fragmentation / drops
+Connecting to host 192.168.123.2, port 6666
+Connecting to host 192.168.123.2, port 7777
+[  5] local 192.168.123.1 port 59092 connected to 192.168.123.2 port 6666
+[  5] local 192.168.123.1 port 47388 connected to 192.168.123.2 port 7777
+[ ID] Interval           Transfer     Bitrate         Total Datagrams
+[  5]   0.00-1.00   sec   300 MBytes  2.52 Gbits/sec  215540  
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Jitter    Lost/Total Datagrams
+[  5]   0.00-1.00   sec   300 MBytes  2.52 Gbits/sec  0.000 ms  0/215540 (0%)  sender
+[  5]   0.00-1.04   sec   298 MBytes  2.40 Gbits/sec  0.020 ms  1293/215540 (0.6%)  receiver
+
+iperf Done.
+[ ID] Interval           Transfer     Bitrate         Total Datagrams
+[  5]   0.00-1.00   sec   170 MBytes  1.43 Gbits/sec  122380  
+- - - - - - - - - - - - - - - - - - - - - - - - -
+[ ID] Interval           Transfer     Bitrate         Jitter    Lost/Total Datagrams
+[  5]   0.00-1.00   sec   170 MBytes  1.43 Gbits/sec  0.000 ms  0/122380 (0%)  sender
+[  5]   0.00-1.04   sec   138 MBytes  1.11 Gbits/sec  0.093 ms  23118/122377 (19%)  receiver
+
+iperf Done.
+*** s1 : ('ifconfig -a',)
+br0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
+        inet6 fe80::6088:10ff:fe42:6d42  prefixlen 64  scopeid 0x20<link>
+        ether 62:88:10:42:6d:42  txqueuelen 1000  (Ethernet)
+        RX packets 12  bytes 820 (820.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 9  bytes 814 (814.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+lo: flags=8<LOOPBACK>  mtu 65536
+        loop  txqueuelen 1000  (Local Loopback)
+        RX packets 0  bytes 0 (0.0 B)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 0  bytes 0 (0.0 B)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+s1-eth0: flags=4419<UP,BROADCAST,RUNNING,PROMISC,MULTICAST>  mtu 1500
+        inet6 fe80::705d:bdff:feb6:b625  prefixlen 64  scopeid 0x20<link>
+        ether 72:5d:bd:b6:b6:25  txqueuelen 1000  (Ethernet)
+        RX packets 337967  bytes 507559888 (507.5 MB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 42  bytes 3621 (3.6 KB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+s1-eth1: flags=4419<UP,BROADCAST,RUNNING,PROMISC,MULTICAST>  mtu 1500
+        inet6 fe80::6088:10ff:fe42:6d42  prefixlen 64  scopeid 0x20<link>
+        ether 62:88:10:42:6d:42  txqueuelen 1000  (Ethernet)
+        RX packets 37  bytes 3151 (3.1 KB)
+        RX errors 0  dropped 0  overruns 0  frame 0
+        TX packets 337979  bytes 507561000 (507.5 MB)
+        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0
+
+*** s1 : ('tc -s -d class show dev s1-eth0',)
+class taprio 100:1 root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:2 root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:3 root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:4 root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:5 root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:6 root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:7 root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:8 root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:9 root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:a root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:b root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:c root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:d root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:e root leaf 100: 
+ Sent 3621 bytes 42 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+*** s1 : ('tc -s -d class show dev s1-eth1',)
+class taprio 100:1 root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:2 root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:3 root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:4 root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:5 root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:6 root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:7 root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:8 root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:9 root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:a root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:b root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:c root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:d root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+class taprio 100:e root leaf 100: 
+ Sent 507560746 bytes 337976 pkt (dropped 0, overlimits 0 requeues 0) 
+ backlog 0b 0p requeues 0
+*** Stopping network
+*** h2 : ('ls -lrat ',)
+tcpdump: listening on h2-eth0, link-type EN10MB (Ethernet), capture size 262144 bytes
+total 479964
+-rw-r--r-- 1 montimage montimage     96071 oct.   4 15:10 single_switch.wireshark.png
+-rw-r--r-- 1 montimage montimage     96071 oct.   4 15:10 single_switch.wireshark.old.png
+drwxr-xr-x 5 montimage montimage      4096 oct.   8 10:24 ..
+-rw-r--r-- 1 montimage montimage     19865 oct.   8 11:37 single_switch.arrival_time.1.pdf
+-rw-r--r-- 1 montimage montimage     24967 oct.   8 11:44 single_switch.arrival_time.298261kpps.pdf
+-rw-r--r-- 1 montimage montimage     24967 oct.   8 11:47 single_switch.arrival_time.pdf
+-rw-r--r-- 1 montimage montimage     11551 oct.   8 11:50 log.txt
+drwxr-xr-x 2 montimage montimage      4096 oct.   8 11:51 .
+-rw-r--r-- 1 montimage montimage      7391 oct.   8 11:55 single_switch.py
+-rw-r--r-- 1 tcpdump   tcpdump   491180032 oct.   8 11:56 h2.pcap
+*** s1 : ('ip link set dev br0 down',)
+*** s1 : ('brctl delbr br0',)
+*** s1 : ('ip link del s1-eth0',)
+.*** s1 : ('ip link del s1-eth1',)
+.loading packets' timestamp ...
+plotting ...
+bye
+real	1m39.264s
+user	1m34.666s
+sys	0m2.139s
