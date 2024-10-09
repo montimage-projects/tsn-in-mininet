@@ -70,10 +70,10 @@ def topology():
     switch.cmdPrint("ifconfig")
     
     # debug
-    #switch.cmd("simple_switch -i 1@h1-eth -i 2@h2-eth  --log-console --pcap=. basic.json &")
+    #switch.cmd("simple_switch -i 1@h1-eth -i 2@h2-eth  --log-file=./simple_switch.log --pcap=. basic.json &")
     #switch.cmd("simple_switch -i 1@h1-eth -i 2@h2-eth basic.json &")
     # no debug, optimally compiled
-    switch.cmd("/home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch -i 1@h1-eth -i 2@h2-eth basic.json &")
+    switch.cmd("/home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch --pcap=. -i 1@h1-eth -i 2@h2-eth basic.json &")
     # wait for the switch
     time.sleep(2)
     #switch.cmdPrint("telnet localhost 9090")
@@ -121,8 +121,8 @@ def topology():
             map 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 \
             queues 1@0 1@1 \
             base-time 1 \
-            sched-entry S 01 200000 \
-            sched-entry S 02 800000 \
+            sched-entry S 01 800000 \
+            sched-entry S 02 200000 \
             clockid CLOCK_TAI' % intf)
 
     # enable packet forwarding
@@ -142,8 +142,8 @@ def topology():
     # run first iperf3 in background
     # --bitrate 0: as fast as possible
     # --length 1460: send 1460 bytes on each packet
-    h1.cmd("iperf3 -c %s --udp --length 16 --bitrate 0 -p 6666 -t 1 &" % h2.IP())
-    h1.cmd('iperf3 -c %s --udp --length 16 --bitrate 0 -p 7777 -t 1'   % h2.IP())
+    h1.cmd("iperf3 -c %s --udp --length 1460 --bitrate 0 -p 6666 -t 1 &" % h2.IP())
+    h1.cmd('iperf3 -c %s --udp --length 1460 --bitrate 0 -p 7777 -t 1'   % h2.IP())
 
     ##show statistic
     switch.cmdPrint('ifconfig -a')
@@ -165,7 +165,7 @@ def plot_packet_arrival_times(pcap_file):
     print("loading packets' timestamp ...")
     first_time = 0
     # range of 5 ms
-    RANGE = [500*1000000, 505*1000000]
+    RANGE = [200*1000000, 205*1000000]
     # Iterate over the packets
     for pkt in packets:
         # Check if the packet has a UDP layer
@@ -215,7 +215,7 @@ def plot_packet_arrival_times(pcap_file):
     plt.ylabel('packet')
     plt.legend(loc='upper right', bbox_to_anchor=(1.15, 1))
     plt.grid(True)
-    plt.savefig( "single_switch.arrival_time.png", dpi=30, format='png', bbox_inches='tight')
+    plt.savefig( "single_switch.arrival_time.pdf", dpi=30, format='pdf', bbox_inches='tight')
 
 
 if __name__ == '__main__':

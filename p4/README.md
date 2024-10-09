@@ -18,7 +18,7 @@ sudo apt install p4lang-p4c
 - To get a better performance, BMv2 needs to be compiled and installed from its source code. See a tuto [here](https://github.com/p4lang/behavioral-model/blob/main/docs/performance.md#suggested-setup-to-run-the-benchmark-consistently)
 
 ```bash
-git clone https://github.com/p4lang/behavioral-model.git bmv2
+git clone https://github.com/montimage/behavioral-model.git bmv2
 cd bmv2
 ./install_deps.sh
 ./autogen.sh
