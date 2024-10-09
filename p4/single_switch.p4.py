@@ -95,6 +95,10 @@ def topology():
     #  https://github.com/p4lang/behavioral-model/issues/965
     #switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 6666 -j CLASSIFY --set-class 0:1')
     #switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 7777 -j CLASSIFY --set-class 0:0')
+    #
+    # ==>
+    # the classification is done by P4 via changing PCP in vlan
+    #  BMv2 is patched to update skb->priority based on the PCP value
 
     for intf in switch.intfs.values():
         None

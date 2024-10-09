@@ -166,8 +166,8 @@ control MyIngress(inout headers hdr,
          hdr.vlan.etherType = hdr.ethernet.etherType;
          hdr.ethernet.etherType = TYPE_VLAN;
          
-         if( hdr.udp.dstPort != 0 )
-            log_msg("udp dst port = {}", {hdr.udp.dstPort});
+         //if( hdr.udp.dstPort != 0 )
+         //   log_msg("udp dst port = {}", {hdr.udp.dstPort});
 
          if( hdr.udp.dstPort == 6666 )
              hdr.vlan.pcp = 1;
