@@ -90,8 +90,11 @@ def topology():
     # We have 2 classes of priorities:
     #  - class/priority 0 (0:0): UDP packets having dst port = 7777
     #  - class/priority 1 (0:1): UDP packets having dst port = 6666
-    switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 6666 -j CLASSIFY --set-class 0:1')
-    switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 7777 -j CLASSIFY --set-class 0:0')
+    #
+    # the outgoing packets will nerver be classified
+    #  https://github.com/p4lang/behavioral-model/issues/965
+    #switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 6666 -j CLASSIFY --set-class 0:1')
+    #switch.cmdPrint('iptables -t mangle -A POSTROUTING -p udp --dport 7777 -j CLASSIFY --set-class 0:0')
 
     for intf in switch.intfs.values():
         None
@@ -145,7 +148,7 @@ def topology():
     ##show statistic
     switch.cmdPrint('ifconfig -a')
     for intf in switch.intfs.values():
-        switch.cmdPrint('tc -s -d class show dev %s' % intf)
+        switch.cmdPrint('tc -s -d qdisc show dev %s' % intf)
 
     ## clean the network
     info( "*** Stopping network\n" )
