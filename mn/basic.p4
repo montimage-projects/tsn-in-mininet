@@ -167,6 +167,28 @@ control MyIngress(inout headers hdr,
         default_action = drop();
     }
     
+    //table to update priority-code-point field in VLAN
+    // by default, pcp is zero
+    action default_priority(){
+        hdr.vlan.pcp = 0;
+    }
+    
+    action set_priority(bit<3> pcp){
+        hdr.vlan.pcp = pcp;
+    }
+    table priority_tbl {
+        //use UDP dst port to identify packet
+        key = {
+           hdr.udp.dstPort: exact;
+        }
+        actions = {
+            set_priority;
+            default_priority;
+        }
+        size = 1024;
+        default_action = default_priority();
+    }
+    
     apply {
          if (hdr.ipv4.isValid() )
             ipv4_lpm.apply();
@@ -179,12 +201,17 @@ control MyIngress(inout headers hdr,
          
          //if( hdr.udp.dstPort != 0 )
          //   log_msg("udp dst port = {}", {hdr.udp.dstPort});
+                  //if( hdr.udp.dstPort != 0 )
+         //   log_msg("udp dst port = {}", {hdr.udp.dstPort});
 
-         if( hdr.udp.dstPort == 6666 )
-             hdr.vlan.pcp = 1;
-         else
-             hdr.vlan.pcp = 0;
+         //PCP is configured via priority_tbl
+         //if( hdr.udp.dstPort == 6666 )
+         //    hdr.vlan.pcp = 1;
+         //else
+         //    hdr.vlan.pcp = 0;
+             
 
+         priority_tbl.apply();
     }
 }
 

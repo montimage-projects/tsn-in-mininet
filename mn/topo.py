@@ -47,7 +47,6 @@ class SingleSwitchTopo(Topo):
 
 def main():
     num_hosts = args.num_hosts
-    mode = args.mode
 
     topo = SingleSwitchTopo(args.behavioral_exe,
                             args.json,
@@ -82,6 +81,9 @@ def main():
         mac  = sw_mac[h]
         switch.cmdPrint("echo 'table_add ipv4_lpm ipv4_forward %s/24 => %s %d' | simple_switch_CLI" % 
             (ip, mac, port))
+
+    # set priority 1 to UDP packets having dst port = 6666 
+    switch.cmdPrint("echo 'table_add priority_tbl set_priority 6666 => 1' | simple_switch_CLI")
 
     # init ARP table on each host
     #  so that the host knows MAC of other hosts
