@@ -60,6 +60,8 @@ class P4Switch(Switch):
                  verbose = False,
                  device_id = None,
                  enable_debugger = False,
+                 cpu_affinity = "0-2", #linux CPU cores assigned to the switch
+                 renice = -10, # linux priority of the switch process
                  **kwargs):
         Switch.__init__(self, name, **kwargs)
         assert(sw_path)
@@ -79,6 +81,8 @@ class P4Switch(Switch):
         self.pcap_dump = pcap_dump
         self.enable_debugger = enable_debugger
         self.log_console = log_console
+        self.cpu_affinity = cpu_affinity
+        self.renice = renice
         if device_id is not None:
             self.device_id = device_id
             P4Switch.device_id = max(P4Switch.device_id, device_id)
@@ -111,7 +115,7 @@ class P4Switch(Switch):
     def start(self, controllers):
         "Start up a new P4 switch"
         info("Starting P4 switch {}.\n".format(self.name))
-        args = [self.sw_path]
+        args = ["nice", "-n", str(self.renice), self.sw_path]
         for port, intf in self.intfs.items():
             if not intf.IP():
                 args.extend(['-i', str(port) + "@" + intf.name])
@@ -142,6 +146,18 @@ class P4Switch(Switch):
             error("P4 switch {} did not start correctly.\n".format(self.name))
             exit(1)
         info("P4 switch {} has been started.\n".format(self.name))
+        
+        #remember pid
+        self.pid = pid
+
+        #stick to a CPU
+        # e.g., taskset -cp 0,4 9030
+        #  will assign process pid = 9030 to CPU cores 0 and 4
+        self.cmd("taskset -cp %s %d" %( self.cpu_affinity, self.pid ))
+        
+        #change priority of the process
+        # e.g., renice -n  -12 -p 9030
+        #self.cmd("renice -n %d -p %d" % ( self.renice, self.pid ))
 
     def stop(self):
         "Terminate P4 switch."
