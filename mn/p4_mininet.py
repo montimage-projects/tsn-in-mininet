@@ -162,7 +162,7 @@ class P4Switch(Switch):
     def stop(self):
         "Terminate P4 switch."
         self.output.flush()
-        self.cmd('kill %' + self.sw_path)
+        self.cmd('kill %d' % self.pid)
         self.cmd('wait')
         self.deleteIntfs()
 
