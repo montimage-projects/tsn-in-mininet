@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import datetime
 # to plot statistic
 from scapy.all import rdpcap, UDP
 import matplotlib.pyplot as plt
@@ -14,7 +15,7 @@ def plot_packet_arrival_times(pcap_file):
     # Dictionary to store the arrival times per UDP destination port
     port_arrival_times = {}
 
-    print("loading packets' timestamp ...")
+    print(datetime.datetime.now(), "loading packets' timestamp ...")
     first_time = 0
     # range of 5 ms
     RANGE = [200*1000000, 205*1000000]
@@ -37,7 +38,7 @@ def plot_packet_arrival_times(pcap_file):
             if offset < RANGE[0]:
                 continue
             if  offset > RANGE[1]:
-                break;
+                break
 
             offset -= RANGE[0]
 
@@ -48,7 +49,7 @@ def plot_packet_arrival_times(pcap_file):
                 port_arrival_times[dst_port] = []
             port_arrival_times[dst_port].append(offset)
 
-    print("plotting ...")
+    print(datetime.datetime.now(), "plotting ...")
     # Plotting
     plt.figure(figsize=(10, 6))
     
@@ -59,7 +60,7 @@ def plot_packet_arrival_times(pcap_file):
     for port in port_arrival_times:
         times = port_arrival_times[port]
         color = colors[port]  # Get the color from the colormap based on index
-        plt.vlines(times, ymin=0, ymax=1, colors=color, alpha=0.6, label=f'Port {port}')
+        plt.vlines(times, ymin=0, ymax=1, colors=color, label=f'Port {port}')
 
     # Formatting the plot
     plt.title('Packet Arrival Times by UDP Destination Port')
@@ -71,6 +72,6 @@ def plot_packet_arrival_times(pcap_file):
 
 
 if __name__ == '__main__':
-
+    print(datetime.datetime.now(), 'plotting h2.pcap' )
     plot_packet_arrival_times("h2.pcap")
-    print( 'bye' )
+    print(datetime.datetime.now(), 'bye' )

@@ -14,4 +14,4 @@ clean:
 compile: basic.json
 
 all: basic.json
-	sudo python3 topo.py --pcap=true
+	sudo python3 topo.py

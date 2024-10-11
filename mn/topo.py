@@ -101,15 +101,15 @@ def main():
     h1.cmd('timeout 60 iperf3 --server --daemon --one-off --port 6666')
     h1.cmd('timeout 60 iperf3 --server --daemon --one-off --port 7777')
     #
-    h1.cmd('timeout 60 tcpdump -w h2.pcap --time-stamp-precision=nano udp &')
+    h1.cmd('timeout 60 tcpdump -w h2.pcap --snapshot-length=100 --time-stamp-precision=nano udp &')
     #h1.cmdPrint("ifconfig -a")
     
     h2 = net.get("h2")
     h3 = net.get("h3")
     # run first iperf3 in background
     # --bitrate 0: as fast as possible
-    h2.cmd("iperf3 -c %s --udp --bitrate 0 -p 6666 -t 5 &" % h1.IP())
-    h3.cmd('iperf3 -c %s --udp --bitrate 0 -p 7777 -t 5'   % h1.IP())
+    h2.cmd("iperf3 -c %s --udp --bitrate 0 -p 6666 -t 1 &" % h1.IP())
+    h3.cmd('iperf3 -c %s --udp --bitrate 0 -p 7777 -t 1'   % h1.IP())
 
     
     ##show statistic
@@ -118,7 +118,7 @@ def main():
         switch.cmdPrint('tc -s -d qdisc show dev %s' % intf)
     
     #sleep(2)
-    CLI( net )
+    #CLI( net )
     net.stop()
 
 if __name__ == '__main__':
