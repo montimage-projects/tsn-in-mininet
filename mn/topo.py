@@ -2,6 +2,7 @@ from mininet.net import Mininet
 from mininet.topo import Topo
 from mininet.log import setLogLevel, info
 from mininet.cli import CLI
+from mininet.link import TCLink
 
 from tsn_mininet import TSNSwitch, TSNHost
 
@@ -43,7 +44,7 @@ class SingleSwitchTopo(Topo):
             host = self.addHost('h%d' % index,
                                 ip = "10.0.%d.10/24" % index,
                                 mac = '00:00:00:00:00:%02x' %index)
-            self.addLink(host, switch)
+            self.addLink(host, switch)#, bw=500)
 
 def main():
     num_hosts = args.num_hosts
@@ -58,6 +59,7 @@ def main():
     net = Mininet(topo = topo,
                   host = TSNHost,
                   switch = TSNSwitch,
+                  #link=TCLink,
                   controller = None)
 
     net.start()

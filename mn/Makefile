@@ -14,4 +14,7 @@ clean:
 compile: basic.json
 
 all: basic.json
-	sudo python3 topo.py
+	#a simple_switch which is disabled debug, output messages to increase performance
+	sudo python3 topo.py --behavioral-exe /home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch
+	# use default simple_switch
+	#sudo python3 topo.py

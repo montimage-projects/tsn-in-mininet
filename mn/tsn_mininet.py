@@ -85,4 +85,7 @@ class TSNSwitch( P4Switch ):
                 sched-entry S 02 200000 \
                 clockid CLOCK_TAI' % intf.name)
 
+            # limit egress speed by introducing a delay
+            # not work
+            #self.cmdPrint('tc qdisc add dev %s root netem delay 1ms' % intf.name)
         return r

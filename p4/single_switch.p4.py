@@ -215,7 +215,7 @@ def plot_packet_arrival_times(pcap_file):
 
     # Formatting the plot
     plt.title('Packet Arrival Times by UDP Destination Port')
-    plt.xlabel('Arrival Time (us)')
+    plt.xlabel('Arrival Time (ns)') #nanosecond
     plt.ylabel('packet')
     plt.legend(loc='upper right', bbox_to_anchor=(1.15, 1))
     plt.grid(True)
