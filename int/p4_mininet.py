@@ -23,6 +23,8 @@ import tempfile
 import socket
 
 SWITCH_START_TIMEOUT = 10 # second
+setLogLevel( 'debug' )
+print("*****Overriding P4Switch+P4Host*****")
 
 class P4Host(Host):
     def config(self, **params):
@@ -121,7 +123,7 @@ class P4Switch(Switch):
         for port, intf in self.intfs.items():
             if not intf.IP():
                 args.extend(['-i', str(port) + "@" + intf.name])
-        if self.pcap_dump and os.path.isdir(self.pcap_dump):
+        if self.pcap_dump:
             args.append("--pcap %s" % self.pcap_dump)
             # args.append("--useFiles")
         if self.thrift_port:
@@ -135,8 +137,8 @@ class P4Switch(Switch):
             args.append("--debugger")
         if self.log_console:
             args.append("--log-console")
-        logfile = "/tmp/p4s.{}.log".format(self.name)
-        info(' '.join(args) + "\n")
+        logfile = "logs/p4s.{}.log".format(self.name)
+        print(' '.join(args) + "\n")
 
         pid = None
         with tempfile.NamedTemporaryFile() as f:
@@ -160,13 +162,13 @@ class P4Switch(Switch):
         #change priority of the process
         # e.g., renice -n  -12 -p 9030
         #self.cmd("renice -n %d -p %d" % ( self.renice, self.pid ))
-        self.start_qdisk( controllers )
+        #self.start_qdisk( controllers )
 
     "P4 virtual Switch using TAPRIO qdisc"
     def start_qdisk( self, controllers ):
         """Configure TAPRIO qdisc on each port of the switch
         """
-        info("Configuring QDISC for switch {}.\n".format(self.name))
+        info("**Configuring QDISC for switch {}.\n".format(self.name))
         #for each connected port
         for port, intf in self.intfs.items():
             # ignore localhost
@@ -175,7 +177,7 @@ class P4Switch(Switch):
                 continue
 
             # set number of TX queues to 2
-            self.cmd('ethtool -L %s tx 2' % intf.name)
+            self.cmdPrint('ethtool -L %s tx 2' % intf.name)
             
 
             # Change queueing policy
