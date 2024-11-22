@@ -212,28 +212,6 @@ control MyIngress(inout headers hdr,
         default_action = drop();
     }
     
-    //table to update priority-code-point field in VLAN
-    // by default, pcp is zero
-    action default_priority(){
-        hdr.vlan.pcp = 0;
-    }
-    
-    action set_priority(bit<3> pcp){
-        hdr.vlan.pcp = pcp;
-    }
-    table priority_tbl {
-        //use UDP dst port to identify packet
-        key = {
-           hdr.udp.dstPort: exact;
-        }
-        actions = {
-            set_priority;
-            default_priority;
-        }
-        size = 1024;
-        default_action = default_priority();
-    }
-    
     apply {
          if (hdr.ipv4.isValid() ){
             ipv4_lpm.apply();
@@ -241,22 +219,6 @@ control MyIngress(inout headers hdr,
             //INT work over IP so we put here its ingress
             int_ingress.apply( hdr._int, meta._int, standard_metadata );
          }
-
-         //force to enable VLAN if VLAN does not exist
-         if( hdr.ethernet.etherType != TYPE_VLAN ){
-             hdr.vlan.setValid();
-             hdr.vlan.etherType = hdr.ethernet.etherType;
-             hdr.ethernet.etherType = TYPE_VLAN;
-         }
-
-         //PCP is configured via priority_tbl
-         //if( hdr.udp.dstPort == 6666 )
-         //    hdr.vlan.pcp = 1;
-         //else
-         //    hdr.vlan.pcp = 0;
-             
-
-         priority_tbl.apply();
     }
 }
 
@@ -266,18 +228,24 @@ control MyIngress(inout headers hdr,
 
 control MyEgress(inout headers hdr,
                  inout metadata meta,
-                 inout standard_metadata_t standard_metadata) {
+                 inout standard_metadata_t std_meta) {
     apply {
 
-         int_egress.apply( hdr._int, meta._int, standard_metadata );
+         int_egress.apply( hdr._int, meta._int, std_meta );
 
-         if (standard_metadata.instance_type == PKT_INSTANCE_TYPE_EGRESS_CLONE) {
-             //reset priority to copy to INT
-             //standard_metadata.priority = 0;
+
+         //update output packet size in transit
+         if( INT_IN_TRANSIT(meta._int.int_node )){
              hdr.ipv4.dscp = INT_IPv4_DSCP;
              //hdr.ipv4.dstAddr =  0x0a001E02; //10.0.30.2 IP of INT collector
              hdr.ipv4.totalLen = hdr.ipv4.totalLen + (bit<16>)meta._int.insert_byte_cnt;
-             return;
+         }
+
+         // sink
+         if( INT_IN_SINK(meta._int.int_node) && std_meta.instance_type == PKT_INSTANCE_TYPE_NORMAL){
+             hdr.ipv4.dscp = meta._int.dscp;
+             // restore length fields of IPv4 header and UDP header
+             hdr.ipv4.totalLen = hdr.ipv4.totalLen - meta._int.total_int_length + 12;
          }
     }
 }
@@ -319,9 +287,9 @@ control MyDeparser(packet_out packet, in headers hdr) {
         packet.emit(hdr.vlan);
         packet.emit(hdr.ipv4);
         packet.emit(hdr.tcp);
+        packet.emit(hdr.tcp_opt);
         packet.emit(hdr.udp);
 
-        packet.emit(hdr.tcp_opt);
         int_deparser.apply( packet, hdr._int );
     }
 }

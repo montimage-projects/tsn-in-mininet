@@ -88,25 +88,57 @@ header int_q_ingress_packets_t{
 #define INT_NODE_SINK     0b010
 #define INT_NODE_TRANSIT  0b100
 
+const bit<8> CLONE_FIELD  = 1;
 struct int_metadata{
+   //the fields being marked will be copied when the current packet is cloned
+   //  other fields will be reset to zero
+   @field_list(CLONE_FIELD)
    bit<3>  int_node;          // is INT functionality enabled, if yes it will act as source, transit or sink node
+
+   @field_list(CLONE_FIELD)
    bit<32> switch_id;         // INT switch id is configured by network controller
+
+   // these 2 belows are used in egress stage, thus no need to remember them
    bit<16> insert_byte_cnt;   // counter of inserted INT bytes
    bit<8>  int_hdr_word_len;  // counter of inserted INT words
-   bit<16> sink_reporting_port;    // on which port INT reports must be send to INT collector
-   bit<48> ingress_tstamp;   // remember ingress timestamp from Ingress pipeline to Egress pipeline
-   bit<48> egress_tstamp;
-   bit<16> ingress_port;     // remember ingress port from Ingress pipeline to Egress pipeline 
-   bit<9> egress_port;     // 
 
+   // currently not used
+   bit<16> sink_reporting_port;    // on which port INT reports must be send to INT collector
+
+   @field_list(CLONE_FIELD)
+   bit<48> ingress_tstamp;    // remember ingress timestamp from Ingress pipeline to Egress pipeline
+
+   // this field cannot be obtained at ingress stage, thus, no need to remember it
+   bit<48> egress_tstamp;
+
+   @field_list(CLONE_FIELD)
+   bit<16> ingress_port;     // remember ingress port from Ingress pipeline to Egress pipeline
+
+   @field_list(CLONE_FIELD)
+   bit<9> egress_port;       //egress port of the original packet
+
+   @field_list(CLONE_FIELD)
+   bit<19> enq_qdepth;
+
+   @field_list(CLONE_FIELD)
    bit<6>  dscp; //backup the original IPv4 DSCP
-   //4-tuples to indifiy the flows to perfom INT on
+
+   //4-tuples to identify the flows to perform INT
    bit<32> src_ip;
    bit<32> dst_ip;
    bit<16> src_port;
    bit<16> dst_port;
-   bit<19> enq_qdepth;
+
+
+   @field_list(CLONE_FIELD)
+   bit<16> total_int_length; //number of additional bytes that have been introduced by all INT nodes in the packet by INT
 }
+
+
+#define INT_IN_SOURCE( bit )  ( bit & INT_NODE_SOURCE  != 0 )
+#define INT_IN_TRANSIT( bit ) ( bit & INT_NODE_TRANSIT != 0 )
+#define INT_IN_SINK( bit )    ( bit & INT_NODE_SINK    != 0 )
+#define IS_IN_INT_NODE( bit ) ( bit != INT_NODE_NONE )
 
 // Enough room for previous 4 nodes worth of data
 header int_data_t{
@@ -138,6 +170,16 @@ error
 	INTVersionNotSupported
 }
 
+/**
+ * Parse an INT packet to get info.
+ *
+ * This parser must be always called even on a node which is not INT-enabled
+ *   (neither source, nor transit, nor sink).
+ * This is caused by the fact that we only know latter whether this node is INT-enabled or not,
+ *   at the ingress.
+ * Consequently, if this parser was not called, and latter we know that this node is source (or transit/sink)
+ *   then we do not have any info on the packet to do INT.
+ */
 parser int_parser(packet_in packet, in bit<6> dscp, 
       in bit<32> src_ip, in bit<16> src_port, in bit<32> dst_ip, in bit<16> dst_port,
       out int_headers hdr, inout int_metadata meta, in standard_metadata_t std_meta ) {
@@ -152,9 +194,11 @@ parser int_parser(packet_in packet, in bit<6> dscp,
       meta.src_port = src_port;
       meta.dst_ip   = dst_ip;
       meta.dst_port = dst_port;
-      meta.int_node = INT_NODE_NONE;
 
+      //by default, we suppose that no INT in this packet
+      meta.int_node = INT_NODE_NONE;
       meta.insert_byte_cnt = 0;
+
       // in case of frame clone for the INT sink reporting
       // ingress timestamp is not available on Egress pipeline
       meta.ingress_tstamp = std_meta.ingress_global_timestamp;
@@ -170,6 +214,9 @@ parser int_parser(packet_in packet, in bit<6> dscp,
    state parse_int {
       packet.extract( hdr.shim );
       packet.extract( hdr.int_header );
+
+      meta.dscp = hdr.shim.dscp;
+      meta.total_int_length = ((bit<16>)hdr.shim.len << 2);
 
       //parse previous INT data
       // no need to see what are inside
@@ -197,7 +244,9 @@ parser int_parser(packet_in packet, in bit<6> dscp,
 
 
 
-
+/**
+ * This control is called to configure INT source
+ */
 control __config_source(inout int_headers hdr, inout int_metadata meta, in standard_metadata_t std_meta) {
    // Configure parameters of INT source node
    // max_hop - how many INT nodes can add their INT node metadata
@@ -254,33 +303,23 @@ control __config_source(inout int_headers hdr, inout int_metadata meta, in stand
    }
 }
 
+/**
+ * This control is called by any node when an INT packet passing throught it
+ */
 
-control __config_transit( inout int_headers hdr, inout int_metadata meta, in standard_metadata_t std_meta ){
-   
+const bit<32> REPORT_MIRROR_SESSION_ID = 1;
+control __config_int( inout int_headers hdr, inout int_metadata meta, inout standard_metadata_t std_meta ) {
+   action set_sink(bit<16> sink_reporting_port) {
+      meta.int_node = meta.int_node | INT_NODE_SINK;
+      meta.sink_reporting_port = sink_reporting_port;
+      log_msg("==INT== tb_int_config sink_reporting_port={}", {sink_reporting_port});
+   }
+
    action set_transit( bit<32> switch_id ) {
       // mark this node as TRANSITE only when the packet is in INT
       meta.int_node = meta.int_node | INT_NODE_TRANSIT;
-
       meta.switch_id = switch_id;
-   }
-   
-   // table used to active INT sink for a egress port of the switch
-   table tb_int_config_transit {
-      actions = {
-         set_transit;
-      }
-      size = 1; //only need one entry to activate INT and set its switch ID
-   }
-
-   apply {
-      tb_int_config_transit.apply();
-   }
-}
-
-const bit<32> REPORT_MIRROR_SESSION_ID = 1;
-control __config_sink( inout int_headers hdr, inout int_metadata meta, inout standard_metadata_t std_meta ) {
-   action set_sink(bit<16> sink_reporting_port) {
-      meta.int_node = meta.int_node | INT_NODE_SINK;
+      log_msg("==INT== tb_int_config switch_id={}", {switch_id});
    }
 
    //table used to activate/desactivate INT sink for particular egress port of the switch
@@ -288,14 +327,15 @@ control __config_sink( inout int_headers hdr, inout int_metadata meta, inout sta
        actions = {
            set_sink;
        }
-       key = {
-           std_meta.egress_spec: exact;
-       }
-       size = 255;
    }
-   
+   table tb_int_config {
+       actions = {
+           set_transit;
+       }
+   }
    apply {
-       tb_int_config_sink.apply();
+      tb_int_config.apply();
+      tb_int_config_sink.apply();
    }
 }
 
@@ -304,26 +344,42 @@ control __config_sink( inout int_headers hdr, inout int_metadata meta, inout sta
 control int_ingress(inout int_headers hdr, inout int_metadata meta, inout standard_metadata_t std_meta) {
    apply {
       //apply INT source logic on INT monitored flow
-      //__config_source.apply( hdr, meta, std_meta);
+      __config_source.apply( hdr, meta, std_meta);
 
-      //shim isValid() when it is present 
+      //shim isValid() when it is present
       // (it was created by source node that is either the current node or the one in the packet path)
       // => the current packet is INT
 
       if(! hdr.shim.isValid() )
          return;
 
-      __config_transit.apply( hdr, meta, std_meta);
+      __config_int.apply( hdr, meta, std_meta);
 
-      // in case of sink node make packet clone I2E in order to create INT report
-      // which will be send to INT reporting port
-      __config_sink.apply( hdr, meta, std_meta );
+      //remember meta data which will be copied to egress
+      meta.enq_qdepth  = std_meta.enq_qdepth;
+      meta.egress_port = std_meta.egress_port;
+
+      if( INT_IN_SINK( meta.int_node )){
+         /***
+          * Calling clone_preserving_field_list during execution of the ingress
+          * or egress control will cause the packet to be cloned, sometimes
+          * also called mirroring, i.e. zero or more copies of the packet are
+          * made, and each will later begin egress processing as an independent
+          * packet from the original packet.  The original packet continues
+          * with its normal next steps independent of the clone(s).
+          *
+          * More: https://github.com/p4lang/p4c/blob/1b47d14d072887bdc3970ed84e6bccee37a69981/p4include/v1model.p4#L632
+          */
+         clone_preserving_field_list(CloneType.I2E, REPORT_MIRROR_SESSION_ID, CLONE_FIELD);
+         log_msg("===Just after calling clone_preserving_field_list" );
+      }
    }
 }
 
-control __sink(inout int_headers hdr, inout int_metadata meta, inout standard_metadata_t std_meta) {
+control __clear_int_header(inout int_headers hdr, inout int_metadata meta, inout standard_metadata_t std_meta) {
 
-   action remove_int_header() {
+   apply {
+        // remove INT headers from the current packet
       log_msg("==INT.sink removes INT header");
       // remove int data
       hdr.shim.setInvalid();
@@ -342,13 +398,6 @@ control __sink(inout int_headers hdr, inout int_metadata meta, inout standard_me
       //remove the previous INT data also
       hdr.previous_data.setInvalid();
    }
-
-   apply {
-        // remove INT headers from the current packet
-        //if( std_meta.egress_port != 3 )
-        //FIXME: a hack here to keep INT in a packet when it goes out port 3 that is mirroring port
-        remove_int_header();
-   }
 }
 
 
@@ -358,23 +407,21 @@ control __send_report(inout int_headers hdr, inout int_metadata meta, inout stan
         // prepare an INT report for the INT collector
         //__report.apply(hdr, meta, standard_metadata);
         log_msg("==CLONED packet");
-        meta.int_node =  INT_NODE_TRANSIT; //clear sink
-        //change IP dst to the INT collector
-        
+        //TODO:
+        // - change IP dst to the INT collector
+        // - appendother
    }
 }
 
 
-control __get_meta(in standard_metadata_t std_meta, inout int_metadata meta) {
+control __get_egress_meta(in standard_metadata_t std_meta, inout int_metadata meta) {
 
    apply {
       meta.egress_tstamp = std_meta.egress_global_timestamp;
-      meta.enq_qdepth = std_meta.enq_qdepth;
-      meta.egress_port = std_meta.egress_port;
    }
 }
 
-control __transit(inout int_headers hdr, inout int_metadata meta, in standard_metadata_t std_meta) {
+control __set_int_stat(inout int_headers hdr, inout int_metadata meta) {
 
         action int_set_header_0() {
             hdr.switch_id.setValid();
@@ -719,10 +766,10 @@ control __transit(inout int_headers hdr, inout int_metadata meta, in standard_me
 
         action int_update_shim_ac() {
             hdr.shim.len = hdr.shim.len + (bit<8>)meta.int_hdr_word_len;
-
+            meta.total_int_length = ((bit<16>)hdr.shim.len) << 2;
         }
 
-        apply {	
+        apply {
             log_msg("==INT transit, remaining_hop: {}", {hdr.int_header.remaining_hop_cnt});
             //TODO: check if hop-by-hop INT or destination INT
 
@@ -747,33 +794,38 @@ control __transit(inout int_headers hdr, inout int_metadata meta, in standard_me
 
 
 control int_egress(inout int_headers hdr, inout int_metadata meta, inout standard_metadata_t std_meta) {
-   bit<7> old_priority;
    apply {
 
-      //we can be here 2 times: one for the orginal packet, 
-      // another for the cloned packet (not ready yet) that will be sent to INT collector using UDP
+      //we can be here 2 times:
+      // - first time for the original packet,
+      // - second time for the cloned packet that will be sent to INT collector using UDP
+
+      // no INT
+      if( ! IS_IN_INT_NODE( meta.int_node ))
+          return;
 
       log_msg("===INT egress, shim: {}, int_node: {}, instance_type={}", {hdr.shim.int_type, meta.int_node, std_meta.instance_type});
-      //a normal packet => clone it
-      if (std_meta.instance_type == PKT_INSTANCE_TYPE_NORMAL) {
-         // remember the packet metadata: egress time, queue at the egress
-         __get_meta.apply( std_meta, meta );
-         //remove INT
-         __sink.apply( hdr, meta, std_meta );
-         
-         //old_priority = std_meta.priority;
-         //std_meta.priority = 0;
-         //https://github.com/p4lang/p4c/blob/1b47d14d072887bdc3970ed84e6bccee37a69981/p4include/v1model.p4#L632
-         clone_preserving_field_list(CloneType.E2E, REPORT_MIRROR_SESSION_ID, 0);
-         
-         //std_meta.priority = old_priority;
-         return;
-      }
 
-      __config_source.apply( hdr, meta, std_meta);
-      __transit.apply( hdr, meta, std_meta );
-      
-      __send_report.apply( hdr, meta, std_meta );
+      // remember the packet metadata: egress time, queue at the egress
+      __get_egress_meta.apply( std_meta, meta );
+
+      // when INT is enable, any node is transit node
+      // => set stat in INT header
+      __set_int_stat.apply( hdr, meta );
+
+
+      // continue processing only for sink node
+      if( ! INT_IN_SINK( meta.int_node ))
+         return;
+
+      // if we get a normal packet => clone it
+      if (std_meta.instance_type == PKT_INSTANCE_TYPE_NORMAL) {
+         //remove INT
+         __clear_int_header.apply( hdr, meta, std_meta );
+      }
+      else {
+         __send_report.apply( hdr, meta, std_meta );
+      }
    }
 }
 
@@ -782,7 +834,7 @@ control int_deparser(packet_out packet, in int_headers hdr) {
    apply {
       log_msg("==INT_depasser: shim valid: {}, shim type: {}", {hdr.shim.isValid(), hdr.shim.int_type});
       // INT headers
-      //Emitting a header appends the header to the packet_out only if the header is valid
+      //"emit(header)" function appends the header to the packet_out only if the header is valid
 
       packet.emit(hdr.shim);
       packet.emit(hdr.int_header);

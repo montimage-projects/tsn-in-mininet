@@ -1,7 +1,8 @@
 // router
 table_add ipv4_lpm ipv4_forward 10.0.1.1/24 => 08:00:00:00:01:11 1
-table_add ipv4_lpm ipv4_forward 10.0.2.2/24 => 08:00:00:00:02:22 1
+table_add ipv4_lpm ipv4_forward 10.0.2.2/24 => 08:00:00:00:02:22 2
 table_add ipv4_lpm ipv4_forward 10.0.3.3/24 => 08:00:00:00:03:33 2
 
 // INT
-table_add tb_int_config_transit set_transit => 1
+// set data to append to INT: switch_id = 2
+table_set_default tb_int_config set_transit 2

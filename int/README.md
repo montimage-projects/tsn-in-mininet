@@ -88,3 +88,13 @@ It is to create a simple network using Mininet. The network consists of 2 hosts,
    ```bash
    make clean
    ```
+
+# Configure Inband network telemetry
+
+1. Source node:
+
+Syntax: 
+   ```ip_src ip_dst port_src port_dst => max_hop hop_md_length inst_mask priority```
+
+Example:
+   ```table_add tb_int_config_source set_source $CLIENT_A&&&0xFFFFFF00 5001&&&0x0000 $SERVER_A&&&0xFFFFFF00 5001&&&0x0000 => 4 10 0xFFFF 0```
