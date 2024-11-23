@@ -234,7 +234,7 @@ control MyIngress(inout headers hdr,
     }
     action multicast(bit<16> grp) {
         log_msg("set multicast group = {}", {grp});
-        standard_metadata.mcast_grp = grp;
+        //standard_metadata.mcast_grp = grp;
     }
     table ipv4_lpm {
         key = {
@@ -250,9 +250,25 @@ control MyIngress(inout headers hdr,
         default_action = drop();
     }
     
+    table unicast {
+        key = {
+            hdr.ipv4.srcAddr: lpm;
+        }
+        actions = {
+            ipv4_forward;
+            drop;
+            NoAction;
+        }
+        size = 1024;
+        default_action = drop();
+    }
+    
     apply {
          if (hdr.ipv4.isValid() ){
-            ipv4_lpm.apply();
+            if( hdr.ipv4.dstAddr == 0xE0000181 ){ //224.0.1.129
+                unicast.apply();
+            }
+            else ipv4_lpm.apply();
 
             //INT work over IP so we put here its ingress
             int_ingress.apply( hdr._int, meta._int, standard_metadata );
