@@ -1,0 +1,26 @@
+{
+    "hosts": {
+        "h1": {"ip": "10.0.1.1/24", "mac": "08:00:00:00:01:11",
+               "commands":["route add default gw 10.0.1.10 dev eth0",
+                           "arp -i eth0 -s 10.0.1.10 08:00:00:00:01:00",
+                           "ptp4l -i eth0 -f configs/master.cfg -m 2>&1 > logs/ptp4l.master.log &"]},
+        "h2": {"ip": "10.0.2.2/24", "mac": "08:00:00:00:02:22",
+               "commands":["route add default gw 10.0.2.20 dev eth0",
+                           "arp -i eth0 -s 10.0.2.20 08:00:00:00:02:00",
+                           "ptp4l -i eth0 -f configs/slave.cfg -m 2>&1 > logs/ptp4l.slave.log &"]},
+        "h3": {"ip": "10.0.3.3/24", "mac": "08:00:00:00:03:33",
+               "commands":["route add default gw 10.0.3.30 dev eth0",
+                           "arp -i eth0 -s 10.0.3.30 08:00:00:00:03:00"]}
+    },
+    "switches": {
+        "s1": { "cli_input" : "s1.txt" },
+        "s2": { "cli_input" : "s2.txt" },
+        "s3": { "cli_input" : "s3.txt" }
+    },
+    "links": [
+        ["h1", "s1-p1"], ["s1-p2", "s2-p1"], ["s2-p2", "s3-p1"], ["s3-p2", "h2"], 
+        
+        ["s1-p3", "h3"],
+        ["s3-p3", "h3"]
+    ]
+}
