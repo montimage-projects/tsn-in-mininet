@@ -98,3 +98,14 @@ Syntax:
 
 Example:
    ```table_add tb_int_config_source set_source $CLIENT_A&&&0xFFFFFF00 5001&&&0x0000 $SERVER_A&&&0xFFFFFF00 5001&&&0x0000 => 4 10 0xFFFF 0```
+
+# Note
+If transparent clock (TC) uses UDPv4 as transport layer, then
+   it refuses to transfer packets if its outgoing port has no IP.
+
+Otherwise, L2 transport works even outgoing port has no IP.
+
+Need to turn off TX offload on each outgoin port of the switch
+
+Somehow a second TC (which is put just after the first TC) refuse to forward packets given by the first TC
+Currently, the TC just after Master can forward packets using UDPv4. 

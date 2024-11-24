@@ -116,8 +116,23 @@ class P4Switch(Switch):
             if result == 0:
                 return  True
 
+    def config_intfs(self ):
+        info("**Configuring ports for switch {}.\n".format(self.name))
+        #for each connected port
+        for port, intf in self.intfs.items():
+            # ignore localhost
+            if intf.name == "lo":
+                continue
+
+            self.cmd("ifconfig {} 11.1.{}.{}".format(intf.name, self.device_id, port + 1))
+
+            for off in ["rx", "tx", "sg"]:
+                self.cmd("/sbin/ethtool --offload {} {} off".format(intf.name, off))
+
     def start(self, controllers):
         "Start up a new P4 switch"
+        self.config_intfs()
+        
         info("Starting P4 switch {}.\n".format(self.name))
         args = ["nice", "-n", str(self.renice), self.sw_path]
         for port, intf in self.intfs.items():

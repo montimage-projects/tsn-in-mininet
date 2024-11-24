@@ -316,6 +316,11 @@ control MyEgress(inout headers hdr,
              // restore length fields of IPv4 header and UDP header
              hdr.ipv4.totalLen = hdr.ipv4.totalLen - meta._int.total_int_length + 12;
          }
+         
+         if( hdr.ptp.isValid() ){
+             //modif ptp field
+             //hdr.ptp.correctionField = 1111;
+         }
     }
 }
 
