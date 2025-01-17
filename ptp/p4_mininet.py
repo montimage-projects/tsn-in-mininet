@@ -177,7 +177,10 @@ class P4Switch(Switch):
         #change priority of the process
         # e.g., renice -n  -12 -p 9030
         #self.cmd("renice -n %d -p %d" % ( self.renice, self.pid ))
-        self.start_ptp( controllers )
+        
+        #HN
+        self.ptp_pid = None
+        #self.start_ptp( controllers )
 
     "LinuxPTP transparent clock"
     def start_ptp( self, controllers ):
@@ -220,7 +223,8 @@ class P4Switch(Switch):
         "Terminate P4 switch."
         self.output.flush()
         self.cmd('kill %d' % self.pid)
-        self.cmd('kill %d' % self.ptp_pid)
+        if self.ptp_pid != None:
+            self.cmd('kill %d' % self.ptp_pid)
         self.cmd('wait')
         self.deleteIntfs()
 
