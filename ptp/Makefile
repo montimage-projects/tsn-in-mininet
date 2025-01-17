@@ -1,7 +1,9 @@
 
 BMV2_SWITCH_EXE = simple_switch_grpc
 BMV2_SWITCH_EXE=/home/mmt/hn/behavioral-model/targets/simple_switch/.libs/simple_switch
-#BMV2_SWITCH_EXE=/home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch
+BMV2_SWITCH_EXE=/home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch
+
+P4C_ARGS += --emit-externs
 
 include ../utils/Makefile
 

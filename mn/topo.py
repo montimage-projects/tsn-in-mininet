@@ -99,6 +99,7 @@ def main():
 
     info("Ready !")
 
+    '''
     h1 = net.get('h1')
     h1.cmd('timeout 60 iperf3 --server --daemon --one-off --port 6666')
     h1.cmd('timeout 60 iperf3 --server --daemon --one-off --port 7777')
@@ -118,11 +119,12 @@ def main():
     #switch.cmdPrint('ifconfig -a')
     for intf in switch.intfs.values():
         switch.cmdPrint('tc -s -d qdisc show dev %s' % intf)
+    '''
     
     #sleep(2)
-    #CLI( net )
+    CLI( net )
     net.stop()
 
 if __name__ == '__main__':
-    setLogLevel( 'debug' )
+    setLogLevel( 'info' )
     main()

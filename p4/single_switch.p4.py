@@ -73,7 +73,8 @@ def topology():
     #switch.cmd("simple_switch -i 1@h1-eth -i 2@h2-eth  --log-file=./simple_switch.log --pcap=. basic.json &")
     #switch.cmd("simple_switch -i 1@h1-eth -i 2@h2-eth basic.json &")
     # no debug, optimally compiled
-    switch.cmd("/home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch --pcap=. -i 1@h1-eth -i 2@h2-eth basic.json &")
+    #switch.cmd("/home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch --pcap=. -i 1@h1-eth -i 2@h2-eth basic.json &")
+    switch.cmd("/home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch -i 1@h1-eth -i 2@h2-eth basic.json &")
     # wait for the switch
     time.sleep(2)
     #switch.cmdPrint("telnet localhost 9090")
@@ -145,9 +146,9 @@ def topology():
     h2.cmdPrint("ifconfig -a")
     # run first iperf3 in background
     # --bitrate 0: as fast as possible
-    # --length 1460: send 1460 bytes on each packet
-    h1.cmd("iperf3 -c %s --udp --length 1460 --bitrate 0 -p 6666 -t 1 &" % h2.IP())
-    h1.cmd('iperf3 -c %s --udp --length 1460 --bitrate 0 -p 7777 -t 1'   % h2.IP())
+    # --length 1400: send 1400 bytes on each packet
+    h1.cmd("iperf3 -c %s --udp --length 1400 --bitrate 0 -p 6666 -t 1 &" % h2.IP())
+    h1.cmd('iperf3 -c %s --udp --length 1400 --bitrate 0 -p 7777 -t 1'   % h2.IP())
 
     ##show statistic
     switch.cmdPrint('ifconfig -a')

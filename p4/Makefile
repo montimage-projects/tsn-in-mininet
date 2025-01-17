@@ -11,6 +11,9 @@ P4C_ARGS = --p4runtime-file $(basename $@).p4info --p4runtime-format text
 
 clean:
 	rm -rf basic.json basic.p4i
+	# remove veth if existing
+	sudo ip link del h1-eth || true
+	sudo ip link del h2-eth || true
 
 %.json: %.p4
 	# compile P4 code

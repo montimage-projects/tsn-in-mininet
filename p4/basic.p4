@@ -166,6 +166,7 @@ control MyIngress(inout headers hdr,
          hdr.vlan.etherType = hdr.ethernet.etherType;
          hdr.ethernet.etherType = TYPE_VLAN;
          
+         //log_msg("ingress_system_timestamp: {}", {standard_metadata.ingress_global_timestamp});
          //if( hdr.udp.dstPort != 0 )
          //   log_msg("udp dst port = {}", {hdr.udp.dstPort});
 

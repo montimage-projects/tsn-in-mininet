@@ -81,7 +81,7 @@ class TSNSwitch( P4Switch ):
                 map 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 \
                 queues 1@0 1@1 \
                 base-time 1 \
-                sched-entry S 01 800000 \
+                sched-entry S 01 8000000 \
                 sched-entry S 02 200000 \
                 clockid CLOCK_TAI' % intf.name)
 

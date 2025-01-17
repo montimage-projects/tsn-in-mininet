@@ -1,7 +1,7 @@
 // router
-table_add ipv4_lpm ipv4_forward 10.0.1.1/24 => 08:00:00:00:01:11 1
-table_add ipv4_lpm ipv4_forward 10.0.2.2/24 => 08:00:00:00:02:22 2
-table_add ipv4_lpm ipv4_forward 10.0.3.3/24 => 08:00:00:00:03:33 2
+//table_add ipv4_lpm ipv4_forward 10.0.1.1/24 => 08:00:00:00:01:11 1
+//table_add ipv4_lpm ipv4_forward 10.0.2.2/24 => 08:00:00:00:02:22 2
+//table_add ipv4_lpm ipv4_forward 10.0.3.3/24 => 08:00:00:00:03:33 2
 
 #table_add unicast ipv4_forward 10.0.1.1/24 => 01:00:5E:00:01:81 2
 #table_add unicast ipv4_forward 10.0.2.2/24 => 01:00:5E:00:01:81 1
