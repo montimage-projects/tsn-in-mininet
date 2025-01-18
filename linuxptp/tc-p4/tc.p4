@@ -11,6 +11,7 @@ E2E transparent clock with two-steps (with follow up) over UDP
 *************************************************************************/
 const bit<16> TYPE_IPV4 = 0x0800;
 const bit<16> TYPE_VLAN = 0x8100;
+const bit<16> TYPE_PTP  = 0x88F7; //PTPV2 over Ethernet
 const bit<8>  TYPE_TCP  = 6;
 const bit<8>  TYPE_UDP  = 17;
 
@@ -192,6 +193,7 @@ parser MyParser(packet_in packet,
         transition select(hdr.ethernet.etherType){
             TYPE_VLAN: parse_vlan; 
             TYPE_IPV4: parse_ipv4;
+            TYPE_PTP : parse_ptp;
             default: accept;
         }
     }
@@ -291,6 +293,10 @@ control MyIngress(inout headers hdr,
         log_msg("set multicast group = {}", {grp});
         //standard_metadata.mcast_grp = grp;
     }
+    action mac_forward(macAddr_t srcAddr, egressSpec_t port) {
+        standard_metadata.egress_spec = port;
+        hdr.ethernet.srcAddr = srcAddr;
+    }
     table ipv4_lpm {
         key = {
             hdr.ipv4.dstAddr: lpm;
@@ -317,29 +323,46 @@ control MyIngress(inout headers hdr,
         size = 1024;
         default_action = drop();
     }
-    
+    table mac_unicast {
+        key = {
+            standard_metadata.ingress_port: exact;
+        }
+        actions = {
+            mac_forward;
+            drop;
+            NoAction;
+        }
+        size = 1024;
+        default_action = drop();
+    }
     apply {
          ptp_counter_init(10); //can store at most 10 sync messages
+         
+         //when we have an IP packet
          if (hdr.ipv4.isValid() ){
             if( hdr.ipv4.dstAddr == 0xE0000181 ){ //224.0.1.129
                 unicast.apply();
             }
             else ipv4_lpm.apply();
-
-            //PTPv2
-            // if we got a PTP packet
-            if( hdr.udp.isValid() ){
-               //ptp_key.sourcePortIdentity = hdr.ptp.sourcePortIdentity;
-               //ptp_key.sequenceId         = hdr.ptp.sequenceId;
-               
-               // if we see a sync message (which needs to be sent on UDP port 319
-               if ( hdr.ptp.messageType == PTP_MSG_SYNC && hdr.udp.dstPort == PTP_PORT_319 ){
-                  //rember its arrival time
-                  log_msg("ptp_store_arrival_time({}, {}, {})", {hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId});
-                  ptp_store_ingress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId );
-                  //require to capture its departure time
-                  ptp_capture_egress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId );
-               }
+         }
+         // when we have an Ethernet packet 
+         else if( hdr.ethernet.isValid() ){
+            mac_unicast.apply();
+         }
+         
+         //PTPv2
+         // if we got a PTP packet
+         if( hdr.ptp.isValid() ){
+            //ptp_key.sourcePortIdentity = hdr.ptp.sourcePortIdentity;
+            //ptp_key.sequenceId         = hdr.ptp.sequenceId;
+            
+            // if we see a sync message (which needs to be sent on UDP port 319
+            if ( hdr.ptp.messageType == PTP_MSG_SYNC  ){
+               //rember its arrival time
+               log_msg("ptp_store_arrival_time({}, {}, {})", {hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId});
+               ptp_store_ingress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId );
+               //require to capture its departure time
+               ptp_capture_egress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId );
             }
          }
     }
@@ -365,12 +388,12 @@ control MyEgress(inout headers hdr,
          
          //PTPv2
          // if we got a PTP packet
-         if( hdr.udp.isValid() ){
+         if( hdr.ptp.isValid() ){
             //ptp_key.sourcePortIdentity = hdr.ptp.sourcePortIdentity;
             //ptp_key.sequenceId         = hdr.ptp.sequenceId;
             
             // if we see a follow_up message (which needs to be sent on UDP port 320)
-            if ( hdr.ptp.messageType == PTP_MSG_F_UP && hdr.udp.dstPort == PTP_PORT_320 ){
+            if ( hdr.ptp.messageType == PTP_MSG_F_UP ){
                //get delay of sync message
                ptp_get_ingress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId, ingressNs );
                ptp_get_egress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId, egressNs );
