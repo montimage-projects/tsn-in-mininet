@@ -2,6 +2,10 @@
 #include <core.p4>
 #include <v1model.p4>
 
+/*
+E2E transparent clock with two-steps (with follow up) over UDP
+*/
+
 /*************************************************************************
 *********************** H E A D E R S  ***********************************
 *************************************************************************/
@@ -10,8 +14,57 @@ const bit<16> TYPE_VLAN = 0x8100;
 const bit<8>  TYPE_TCP  = 6;
 const bit<8>  TYPE_UDP  = 17;
 
-const bit<16> PTP_SYNC    = 319;
-const bit<16> PTP_MESSAGE = 320;
+/*
+UDP ports for PTP frames:
+
+Port | Message Type     | Examples
+------------------------------------------------------------
+319  | Event Messages   | Sync, Delay_Req, Pdelay_Req/Resp
+320  | General Messages | Follow_Up, Delay_Resp, Management
+
+*/
+
+const bit<16> PTP_PORT_319 = 319;
+const bit<16> PTP_PORT_320 = 320;
+
+const bit<4> PTP_MSG_SYNC = 0x0;
+const bit<4> PTP_MSG_F_UP = 0x8;
+
+/**
+Get the timestamp of the current packet when it arrived at its input NIC
+*/
+extern void get_ingress_mac_tstamp(out bit<64> tx_tstamp);
+
+/**
+Initialize a circular table within a given capacity.
+- Each element of the table is used to store ingress_mac_tstamp and egress_mac_tstamp of a packet.
+- Each element is distinguished by a 3-tuple (clockId, portId, seqId) 
+*/
+extern void ptp_counter_init(in bit<32> capacity);
+
+/**
+Add an element into the circular table to store ingress_mac_tstamp of the current packet.
+*/
+extern void ptp_store_ingress_mac_tstamp(in bit<64> clockId, in bit<16> portId, in bit<16> seqId);
+
+/**
+Get the ingress_mac_tstamp which was stored when calling the function ptp_store_ingress_mac_tstamp.
+*/
+extern void ptp_get_ingress_mac_tstamp(in bit<64> clockId, in bit<16> portId, in bit<16> seqId, out bit<64> rx_tstamp);
+
+/**
+Tell BMv2 (simple_switch) to capture the egress_mac_tstamp of the current packet.
+The egress_mac_tstamp represents the moment the packet is sent out of its output NIC.
+Thus (egress_mac_tstamp - ingress_mac_tstamp) represents the interval the packet sejourn in BMv2.
+*/
+extern void ptp_capture_egress_mac_tstamp(in bit<64> clockId, in bit<16> portId, in bit<16> seqId);
+
+/**
+Get the egress_mac_tstamp which was required to be captured when calling ptp_capture_egress_mac_tstamp.
+Note: this function will blocks until goting egress_mac_tstamp (i.e., until the packet was sent).
+*/
+extern void ptp_get_egress_mac_tstamp(in bit<64> clockId, in bit<16> portId, in bit<16> seqId, out bit<64> tx_tstamp);
+
 
 
 typedef bit<9>  egressSpec_t;
@@ -84,17 +137,29 @@ header ptp_t {
     bit<8>  domainNumber;
     bit<8>  reserve_2;
     bit<16> flagField;
-    bit<64> correctionField;
+    //bit<64> correctionField;
+    bit<48> correctionNs;
+    bit<16> correctionSubNs;
     bit<32> reserve_3;
-    bit<80> sourcePortIdentity;
+    bit<64> clockId;
+    bit<16> portId;
     bit<16> sequenceId;
     bit<8> controlField;
     bit<8> logMessageInterval;
 }
 
+/*
+A sync and its follow_up messages are correlated using clockID (64bits) + portID (16bit) + sequenceID (16bit)
+=> a key of 96bits 
+*/
+struct ptp_key_t {
+    bit<80> sourcePortIdentity;
+    bit<16> sequenceId;
+}
+
 struct metadata {
     /* empty */
-    int_metadata _int;
+    //int_metadata _int;
 }
 
 struct headers {
@@ -106,7 +171,6 @@ struct headers {
     ptp_t        ptp;
 
    tcp_option_t[MAX_TCP_OPTION_WORD] tcp_opt;
-   int_headers _int;
 
 }
 
@@ -164,21 +228,14 @@ parser MyParser(packet_in packet,
             tcp_opt_cnt = 0;
         //log_msg("====TCP data offset = {}", {tcp_opt_cnt});
         transition select( tcp_opt_cnt ){
-            0       : parse_int_over_tcp;
             default : parse_tcp_option;
         }
     }
 
-    state parse_int_over_tcp {
-        int_parser.apply( packet, hdr.ipv4.dscp, hdr.ipv4.srcAddr, hdr.tcp.srcPort, hdr.ipv4.dstAddr, hdr.tcp.dstPort, hdr._int, meta._int, standard_metadata );
-        transition accept;
-    }
- 
     state parse_tcp_option {
         packet.extract( hdr.tcp_opt.next );
         tcp_opt_cnt = tcp_opt_cnt - 1;
         transition select( tcp_opt_cnt ){
-            0      : parse_int_over_tcp;
             default: parse_tcp_option;
         }
     }
@@ -186,12 +243,11 @@ parser MyParser(packet_in packet,
 
     state parse_udp {
         packet.extract(hdr.udp);
-        int_parser.apply( packet, hdr.ipv4.dscp, hdr.ipv4.srcAddr, hdr.udp.srcPort, hdr.ipv4.dstAddr, hdr.udp.dstPort, hdr._int, meta._int, standard_metadata );
         
         transition select(hdr.udp.dstPort) {
-           PTP_SYNC    : parse_ptp;
-           PTP_MESSAGE : parse_ptp;
-           default     : accept;
+           PTP_PORT_319 : parse_ptp;
+           PTP_PORT_320 : parse_ptp;
+           default      : accept;
         }
     }
 
@@ -220,6 +276,7 @@ control MyIngress(inout headers hdr,
                   inout metadata meta,
                   inout standard_metadata_t standard_metadata) {
 
+    //ptp_key_t ptp_key;
     /* default table and its actions for packet forwarding */
     action drop() {
         mark_to_drop(standard_metadata);
@@ -262,24 +319,28 @@ control MyIngress(inout headers hdr,
     }
     
     apply {
+         ptp_counter_init(10); //can store at most 10 sync messages
          if (hdr.ipv4.isValid() ){
             if( hdr.ipv4.dstAddr == 0xE0000181 ){ //224.0.1.129
                 unicast.apply();
             }
             else ipv4_lpm.apply();
 
-            //INT work over IP so we put here its ingress
-            int_ingress.apply( hdr._int, meta._int, standard_metadata );
-
             //PTPv2
-            /*
+            // if we got a PTP packet
             if( hdr.udp.isValid() ){
-               hdr.udp.dstPort = 319;
-               hdr.ptp.setValid();
-               hdr.ptp.versionPTP = 2;
-               hdr.ptp.messageLength = 32;
-               hdr.ptp.sequenceId = 3;
-            }*/
+               //ptp_key.sourcePortIdentity = hdr.ptp.sourcePortIdentity;
+               //ptp_key.sequenceId         = hdr.ptp.sequenceId;
+               
+               // if we see a sync message (which needs to be sent on UDP port 319
+               if ( hdr.ptp.messageType == PTP_MSG_SYNC && hdr.udp.dstPort == PTP_PORT_319 ){
+                  //rember its arrival time
+                  log_msg("ptp_store_arrival_time({}, {}, {})", {hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId});
+                  ptp_store_ingress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId );
+                  //require to capture its departure time
+                  ptp_capture_egress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId );
+               }
+            }
          }
     }
 }
@@ -291,33 +352,34 @@ control MyIngress(inout headers hdr,
 control MyEgress(inout headers hdr,
                  inout metadata meta,
                  inout standard_metadata_t std_meta) {
+    bit<64> ingressNs;
+    bit<64> egressNs;
+    bit<64> correctionNs;
+    
     apply {
          // Prune multicast packet to ingress port to preventing loop
          if (std_meta.egress_port == std_meta.ingress_port){
             mark_to_drop(std_meta);
             return;
          }
-            
-         int_egress.apply( hdr._int, meta._int, std_meta );
-
-
-         //update output packet size in transit
-         if( INT_IN_TRANSIT(meta._int.int_node )){
-             hdr.ipv4.dscp = INT_IPv4_DSCP;
-             //hdr.ipv4.dstAddr =  0x0a001E02; //10.0.30.2 IP of INT collector
-             hdr.ipv4.totalLen = hdr.ipv4.totalLen + (bit<16>)meta._int.insert_byte_cnt;
-         }
-
-         // sink
-         if( INT_IN_SINK(meta._int.int_node) && std_meta.instance_type == PKT_INSTANCE_TYPE_NORMAL){
-             hdr.ipv4.dscp = meta._int.dscp;
-             // restore length fields of IPv4 header and UDP header
-             hdr.ipv4.totalLen = hdr.ipv4.totalLen - meta._int.total_int_length + 12;
-         }
          
-         if( hdr.ptp.isValid() ){
-             //modif ptp field
-             //hdr.ptp.correctionField = 1111;
+         //PTPv2
+         // if we got a PTP packet
+         if( hdr.udp.isValid() ){
+            //ptp_key.sourcePortIdentity = hdr.ptp.sourcePortIdentity;
+            //ptp_key.sequenceId         = hdr.ptp.sequenceId;
+            
+            // if we see a follow_up message (which needs to be sent on UDP port 320)
+            if ( hdr.ptp.messageType == PTP_MSG_F_UP && hdr.udp.dstPort == PTP_PORT_320 ){
+               //get delay of sync message
+               ptp_get_ingress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId, ingressNs );
+               ptp_get_egress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId, egressNs );
+               
+               correctionNs = egressNs - ingressNs;
+               log_msg("ptp delay = {}", {correctionNs});
+               //add delay of its sync message to the correctionField
+               hdr.ptp.correctionNs = hdr.ptp.correctionNs + (bit<48>)correctionNs;
+            }
          }
     }
 }
@@ -361,8 +423,6 @@ control MyDeparser(packet_out packet, in headers hdr) {
         packet.emit(hdr.tcp);
         packet.emit(hdr.tcp_opt);
         packet.emit(hdr.udp);
-
-        int_deparser.apply( packet, hdr._int );
         packet.emit(hdr.ptp);
     }
 }

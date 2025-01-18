@@ -1,0 +1,24 @@
+// router
+table_add ipv4_lpm ipv4_forward 10.0.1.1/24 => 08:00:00:00:01:11 1
+table_add ipv4_lpm ipv4_forward 10.0.2.2/24 => 08:00:00:00:02:22 2
+table_add ipv4_lpm ipv4_forward 10.0.3.3/24 => 08:00:00:00:03:33 3
+
+table_add unicast ipv4_forward 10.0.1.1/24 => 01:00:5E:00:01:81 2
+table_add unicast ipv4_forward 10.0.2.2/24 => 01:00:5E:00:01:81 1
+
+#mc_mgrp_create 10
+#mc_node_create 5 1 2
+#mc_node_associate 10 0
+#
+#table_add ipv4_lpm multicast 224.0.1.129/24 => 10
+
+// INT
+#table_add tb_int_config_source set_source 10.0.1.11&&&0xFFFF0000 5001&&&0x0000 10.0.0.11&&&0xFFFF0000 5001&&&0x0000 => 4 10 0xFFFF 1
+
+// send INT reports to port 3
+#table_set_default tb_int_config_sink set_sink 3
+// set data to append to INT: switch_id = 3
+#table_set_default tb_int_config set_transit 3
+
+//mirror_id = 1 will be copied to port 3
+#mirroring_add 1 3
