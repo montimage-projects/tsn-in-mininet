@@ -12,9 +12,28 @@
     "switches": {
         "s1": { "config" : "configs/E2E-TC.cfg", "commands": ["ip a"] },
         "s2": { "config" : "configs/E2E-TC.cfg" },
-        "s3": { "config" : "configs/E2E-TC.cfg" }
+        "s3": { "config" : "configs/E2E-TC.cfg" },
+        "s4": { "config" : "configs/E2E-TC.cfg" },
+        "s5": { "config" : "configs/E2E-TC.cfg" },
+        "s6": { "config" : "configs/E2E-TC.cfg" },
+        "s7": { "config" : "configs/E2E-TC.cfg" },
+        "s8": { "config" : "configs/E2E-TC.cfg" },
+        "s9": { "config" : "configs/E2E-TC.cfg" },
+        "s10": { "config" : "configs/E2E-TC.cfg" }
     },
     "links": [
+        ["h1", "s1-p1"], 
+        ["s1-p2", "s2-p1"], ["s2-p2", "s3-p1"],
+        ["s3-p2", "s4-p1"], ["s4-p2", "s5-p1"],
+        ["s5-p2", "s6-p1"], ["s6-p2", "s7-p1"],
+        ["s7-p2", "s8-p1"], ["s8-p2", "s9-p1"],
+        ["s9-p2", "s10-p1"],
+        ["s10-p2", "h2"] 
+    ],
+    "links-3switches": [
         ["h1", "s1-p1"], ["s1-p2", "s2-p1"], ["s2-p2", "s3-p1"], ["s3-p2", "h2"] 
+    ],
+    "links-singleSwitch": [
+        ["h1", "s1-p1"], ["s1-p2", "h2"] 
     ]
 }

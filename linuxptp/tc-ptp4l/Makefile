@@ -7,5 +7,5 @@ clean:
 	sudo mn -c
 
 draw:
-	cat logs/ptp4l.slave.log | python plot/parse.py > ptp.dat
-	gnuplot plot/gnu.plot
+	cat logs/ptp4l.slave.log | python ../plot/parse.py > ptp.dat
+	gnuplot ../plot/gnu.plot
