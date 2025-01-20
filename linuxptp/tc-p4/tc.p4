@@ -188,7 +188,7 @@ parser MyParser(packet_in packet,
     bit<4> tcp_opt_cnt = 0;
 
     state start {
-
+        //log_msg("start parsing");
         packet.extract(hdr.ethernet);
         transition select(hdr.ethernet.etherType){
             TYPE_VLAN: parse_vlan; 
@@ -199,7 +199,7 @@ parser MyParser(packet_in packet,
     }
 
     state parse_vlan {
-        log_msg("Parsing VLAN=====");
+        //log_msg("Parsing VLAN=====");
         packet.extract(hdr.vlan);
         transition select(hdr.vlan.etherType){
             //TYPE_VLAN: parse_vlan; //vlan in vlan 
@@ -209,6 +209,7 @@ parser MyParser(packet_in packet,
     }
 
     state parse_ipv4 {
+        //log_msg("parsing IPv4");
         packet.extract(hdr.ipv4);
         transition select(hdr.ipv4.protocol) {
             TYPE_TCP: parse_tcp;
@@ -218,6 +219,7 @@ parser MyParser(packet_in packet,
     }
 
     state parse_tcp {
+        //log_msg("parsing TCP");
         packet.extract(hdr.tcp);
 
         //jump over TCP options
@@ -230,6 +232,7 @@ parser MyParser(packet_in packet,
             tcp_opt_cnt = 0;
         //log_msg("====TCP data offset = {}", {tcp_opt_cnt});
         transition select( tcp_opt_cnt ){
+            0       : accept; //no option
             default : parse_tcp_option;
         }
     }
@@ -238,12 +241,14 @@ parser MyParser(packet_in packet,
         packet.extract( hdr.tcp_opt.next );
         tcp_opt_cnt = tcp_opt_cnt - 1;
         transition select( tcp_opt_cnt ){
+            0      : accept; //no more option
             default: parse_tcp_option;
         }
     }
 
 
     state parse_udp {
+        //log_msg("parsing UDP");
         packet.extract(hdr.udp);
         
         transition select(hdr.udp.dstPort) {
@@ -254,6 +259,7 @@ parser MyParser(packet_in packet,
     }
 
     state parse_ptp {
+        //log_msg("parsing PTP");
         packet.extract(hdr.ptp);
         transition accept;
     }
