@@ -84,7 +84,7 @@ class P4Switch(Switch):
             command files as input.
         """
 
-        info('Configuring switch %s with file %s\n' % (self.name, self.config_file))
+        info('Configuring P4 switch %s with file %s\n' % (self.name, self.config_file))
         with open(self.config_file, 'r') as fin:
             cli_outfile = '%s/p4s.%s_cli_output.log'%(self.log_dir, self.name)
             with open(cli_outfile, 'w') as fout:
@@ -134,6 +134,10 @@ class P4Switch(Switch):
         args.append("--device-id %d"%( self.device_id ))
         # print log to console which will be then redirected to file
         args.append("--log-console")
+        # log level
+        # supported values  'trace', 'debug', 'info', 'warn', 'error', off';
+        # default is 'trace'
+        args.append("--log-level info") 
         # dump traffic to pcap files
         args.append("--pcap %s"%( mkdir("./pcaps") ))
         # TCP port to config the switch
@@ -163,12 +167,14 @@ class P4Switch(Switch):
             
         debug("PID of P4 switch {} PID is {}.\n".format(self.name, pid))
 
+        # configure the routing tables
         self.program_switch_cli()
+
         #remember pid
-        self.ptp_pid = pid
+        self.p4_pid = pid
         
     def stop(self):
         "Terminate P4 switch."
-        self.cmd('kill %d' % self.ptp_pid)
+        self.cmd('kill %d' % self.p4_pid)
         self.cmd('wait')
         self.deleteIntfs()

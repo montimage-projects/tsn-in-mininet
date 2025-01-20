@@ -180,7 +180,7 @@ class P4Switch(Switch):
         
         #HN
         self.ptp_pid = None
-        #self.start_ptp( controllers )
+        self.start_ptp( controllers )
 
     "LinuxPTP transparent clock"
     def start_ptp( self, controllers ):
