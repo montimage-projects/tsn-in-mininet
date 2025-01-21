@@ -43,7 +43,7 @@ class ExerciseTopo(Topo):
                 # add default switch
                 switchClass = None
 
-            self.addSwitch(sw, inNamespace=True, log_dir=log_dir, config=params["config"], cls=switchClass)
+            self.addSwitch(sw, inNamespace=False, log_dir=log_dir, config=params["config"], cls=switchClass)
 
         for link in host_links:
             host_name = link['node1']
