@@ -28,8 +28,10 @@ Port | Message Type     | Examples
 const bit<16> PTP_PORT_319 = 319;
 const bit<16> PTP_PORT_320 = 320;
 
-const bit<4> PTP_MSG_SYNC = 0x0;
-const bit<4> PTP_MSG_F_UP = 0x8;
+const bit<4> PTP_MSG_SYNC           = 0x0;
+const bit<4> PTP_MSG_FOLLOW_UP      = 0x8;
+const bit<4> PTP_MSG_DELAY_REQUST   = 0x1;
+const bit<4> PTP_MSG_DELAY_RESPONSE = 0x9;
 
 /**
 Get the timestamp of the current packet when it arrived at its input NIC
@@ -363,9 +365,10 @@ control MyIngress(inout headers hdr,
             //ptp_key.sequenceId         = hdr.ptp.sequenceId;
             
             // if we see a sync message (which needs to be sent on UDP port 319
-            if ( hdr.ptp.messageType == PTP_MSG_SYNC  ){
+            if ( hdr.ptp.messageType == PTP_MSG_SYNC 
+              || hdr.ptp.messageType == PTP_MSG_DELAY_REQUST  ){
                //rember its arrival time
-               log_msg("ptp_store_arrival_time({}, {}, {})", {hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId});
+               //log_msg("ptp_store_arrival_time({}, {}, {})", {hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId});
                ptp_store_ingress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId );
                //require to capture its departure time
                ptp_capture_egress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId );
@@ -398,14 +401,16 @@ control MyEgress(inout headers hdr,
             //ptp_key.sourcePortIdentity = hdr.ptp.sourcePortIdentity;
             //ptp_key.sequenceId         = hdr.ptp.sequenceId;
             
-            // if we see a follow_up message (which needs to be sent on UDP port 320)
-            if ( hdr.ptp.messageType == PTP_MSG_F_UP ){
+            // if we see a follow_up message
+            if ( hdr.ptp.messageType == PTP_MSG_FOLLOW_UP 
+              || hdr.ptp.messageType == PTP_MSG_DELAY_RESPONSE  
+              ){
                //get delay of sync message
                ptp_get_ingress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId, ingressNs );
                ptp_get_egress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId, egressNs );
                
                correctionNs = egressNs - ingressNs;
-               log_msg("ptp delay = {}", {correctionNs});
+               //log_msg("ptp delay = {}", {correctionNs});
                //add delay of its sync message to the correctionField
                hdr.ptp.correctionNs = hdr.ptp.correctionNs + (bit<48>)correctionNs;
             }

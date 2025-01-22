@@ -21,7 +21,7 @@
         "s9": { "config" : "../configs/E2E-TC.cfg" },
         "s10": { "config" :"../configs/E2E-TC.cfg" }
     },
-    "links-10": [
+    "links": [
         ["h1", "s1-p1"], 
         ["s1-p2", "s2-p1"], ["s2-p2", "s3-p1"],
         ["s3-p2", "s4-p1"], ["s4-p2", "s5-p1"],
@@ -30,10 +30,10 @@
         ["s9-p2", "s10-p1"],
         ["s10-p2", "h2"] 
     ],
-    "links": [
+    "links-3": [
         ["h1", "s1-p1"], ["s1-p2", "s2-p1"], ["s2-p2", "s3-p1"], ["s3-p2", "h2"] 
     ],
-    "links-singleSwitch": [
+    "links-1": [
         ["h1", "s1-p1"], ["s1-p2", "h2"] 
     ]
 }

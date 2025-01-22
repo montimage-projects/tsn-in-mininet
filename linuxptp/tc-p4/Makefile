@@ -17,6 +17,4 @@ clean:
 	rm tc.p4.p4info.txt tc.json
 
 draw:
-	cat logs/ptp4l.slave.log | python ../plot/parse.py > ptp.dat
-	gnuplot ../plot/gnu.plot
-
+	python3 ../plot.py logs/ptp4l.slave.log 
