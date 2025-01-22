@@ -6,7 +6,7 @@ from mininet.log import setLogLevel, info
 from mininet.link import Link
 from mininet.cli import CLI
 
-import time, json
+import time, json, sys, argparse
 from ptp_mininet import PTPHost, PTPSwitch
 
 
@@ -43,7 +43,8 @@ class ExerciseTopo(Topo):
                 # add default switch
                 switchClass = None
 
-            self.addSwitch(sw, inNamespace=False, log_dir=log_dir, config=params["config"], cls=switchClass)
+            self.addSwitch(sw, inNamespace=False, log_dir=log_dir, cls=switchClass,
+                **params)
 
         for link in host_links:
             host_name = link['node1']
@@ -128,7 +129,14 @@ class ExerciseTopo(Topo):
 if __name__ == '__main__':
     setLogLevel( 'debug' )
 
-    topo = ExerciseTopo(log_dir="./logs", topo_file="./topology.json")
+        # Set up command-line argument parsing
+    parser = argparse.ArgumentParser(description="Parse and plot PTP clock metrics from a log file.")
+    parser.add_argument("--topo-file", help="Path to the JSON containing topology defintion.")
+    parser.add_argument("--enter-cli", help="Whether enter in mininet CLI", action="store_true", default=False)
+    
+    args = parser.parse_args()
+
+    topo = ExerciseTopo(log_dir="./logs", topo_file=args.topo_file)
     net = Mininet(topo=topo, controller=None)
 
     net.start()
@@ -140,7 +148,11 @@ if __name__ == '__main__':
 
 
     time.sleep(1)
-    CLI(net)
+    if args.enter_cli:
+        CLI(net)
+    else:
+        time.sleep(180)
+    
     
     net.stop()
     info( 'bye' )

@@ -7,6 +7,10 @@ from sys import exit
 import os
 import tempfile
 
+def mkdir(newpath):
+    if not os.path.exists(newpath):
+        os.makedirs(newpath)
+    return newpath
 
 class PTPHost(Host):
     def config(self, **params):
@@ -42,9 +46,13 @@ class PTPSwitch(Switch):
     def __init__(self, name, 
                  log_dir = "./logs",
                  config = "configs/E2E-TC.cfg", # config file of the transparent clock
+                 override_ports = {},
                  **kwargs):
         Switch.__init__(self, name, **kwargs)
         
+        #as we will modife override_ports latter 
+        #  so we need to clone it to avoid propagating this modification to other switches
+        self.override_ports = dict(override_ports)
         self.config_file = config
         self.log_dir     = log_dir
 
@@ -80,11 +88,17 @@ class PTPSwitch(Switch):
         for port, intf in self.intfs.items():
             # ignore localhost
             if intf.name == "lo":
-                info("Ignore localhost")
+                info("Ignore localhost\n")
                 continue
-            args.append( "-i %s" % intf.name )
+            # append to set of ports
+            if port not in self.override_ports:
+                self.override_ports[port] = intf.name
 
-        logfile = "{}/ptp4l.{}.log".format(self.log_dir, self.name)
+        for i in self.override_ports:
+            name = self.override_ports[i]
+            args.append( "-i %s" % name )
+
+        logfile = "{}/ptp4l.{}.log".format(mkdir(self.log_dir), self.name)
         # start ptp4l and obtain its pid
         pid = None
         with tempfile.NamedTemporaryFile() as f:

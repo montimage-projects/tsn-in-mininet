@@ -6,7 +6,7 @@ from mininet.log import setLogLevel, info
 from mininet.link import Link
 from mininet.cli import CLI
 
-import time, json
+import time, json, argparse
 from p4_mininet import P4Host, P4Switch
 
 
@@ -43,14 +43,15 @@ class ExerciseTopo(Topo):
                 # add default switch
                 switchClass = None
 
-            self.addSwitch(sw, json_file="tc.json", log_dir=log_dir, config=params["config"], cls=switchClass)
+            self.addSwitch(sw, json_file="tc.json", log_dir=log_dir, cls=switchClass,
+                **params )
 
         for link in host_links:
             host_name = link['node1']
             sw_name, sw_port = self.parse_switch_node(link['node2'])
             host_ip = hosts[host_name]['ip']
             host_mac = hosts[host_name]['mac']
-            self.addHost(host_name, ip=host_ip, mac=host_mac, cls=P4Host)
+            self.addHost(host_name, inNamespace=True, ip=host_ip, mac=host_mac, cls=P4Host)
             self.addLink(host_name, sw_name,
                          delay=link['latency'], bw=link['bandwidth'],
                          port2=sw_port)
@@ -128,7 +129,14 @@ class ExerciseTopo(Topo):
 if __name__ == '__main__':
     setLogLevel( 'debug' )
 
-    topo = ExerciseTopo(log_dir="./logs", topo_file="./topology.json")
+        # Set up command-line argument parsing
+    parser = argparse.ArgumentParser(description="Parse and plot PTP clock metrics from a log file.")
+    parser.add_argument("--topo-file", help="Path to the JSON containing topology defintion.")
+    parser.add_argument("--enter-cli", help="Whether enter in mininet CLI", action="store_true", default=False)
+    
+    args = parser.parse_args()
+
+    topo = ExerciseTopo(log_dir="./logs", topo_file=args.topo_file)
     net = Mininet(topo=topo, controller=None)
 
     net.start()
@@ -140,7 +148,11 @@ if __name__ == '__main__':
 
 
     time.sleep(1)
-    CLI(net)
+    if args.enter_cli:
+        CLI(net)
+    else:
+        time.sleep(180)
+    
     
     net.stop()
     info( 'bye\n' )

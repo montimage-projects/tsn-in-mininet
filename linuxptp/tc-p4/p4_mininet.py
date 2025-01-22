@@ -57,6 +57,7 @@ class P4Switch(Switch):
                  json_file = "tc.json",
                  log_dir   = "./logs",
                  config    = "configs/s1.txt", # config file of the P4 switch
+                 override_ports = {},
                  **kwargs):
         Switch.__init__(self, name, **kwargs)
         
@@ -66,6 +67,10 @@ class P4Switch(Switch):
         
         self.device_id   = P4Switch.device_id
         self.thrift_port = 9090 + self.device_id
+        
+        #as we will modife override_ports latter 
+        #  so we need to clone it to avoid propagating this modification to other switches
+        self.override_ports = dict(override_ports)
         
         # increase this id for each P4 switch to obtain an unique ID
         P4Switch.device_id += 1
@@ -127,6 +132,7 @@ class P4Switch(Switch):
         self.config_intfs()
         
         bmv2_exec = "simple_switch"
+        bmv2_exec = "/home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch"
         if os.getenv("BMV2_SWITCH_EXE") is not None:
             bmv2_exec = os.getenv("BMV2_SWITCH_EXE")
             
@@ -134,9 +140,9 @@ class P4Switch(Switch):
         args.append("--device-id %d"%( self.device_id ))
         # print log to console which will be then redirected to file
         args.append("--log-console")
-        # log level
-        # supported values  'trace', 'debug', 'info', 'warn', 'error', off';
-        # default is 'trace'
+        ## log level
+        ## supported values  'trace', 'debug', 'info', 'warn', 'error', off';
+        ## default is 'trace'
         args.append("--log-level warn") 
         # dump traffic to pcap files
         args.append("--pcap %s"%( mkdir("./pcaps") ))
@@ -151,7 +157,14 @@ class P4Switch(Switch):
             if intf.name == "lo":
                 info("Ignore localhost\n")
                 continue
-            args.append( "-i %d@%s" %(port, intf.name ))
+            # append to set of ports
+            if port not in self.override_ports:
+                self.override_ports[port] = intf.name
+
+        for i in self.override_ports:
+            name = self.override_ports[i]
+            args.append( "-i %s@%s" %(i, name ))
+
 
         logfile = "{}/p4s.{}.log".format( mkdir(self.log_dir), self.name)
         # start switch and obtain its pid

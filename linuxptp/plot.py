@@ -7,16 +7,22 @@ import numpy as np
 import matplotlib as mpl
 mpl.use('Agg')
 
+
+
 def parse_ptp_log(log_file):
     """
     Parses the PTP slave clock log file to extract master offset, frequency offset, and path delay.
     :param log_file: Path to the log file.
     :return: Dictionary with lists of metrics and timestamps.
     """
-    
+    # log of ptp slave is different depending "free_running" parameter
+    # when free_running = 1, the output is as below
     pattern = '^(.*)ptp4l\[(.+)\]: master offset\s+(-?[0-9]+) s([012]) freq\s+([+-]\d+) path delay\s+(-?\d+)$'
     test_string = 'ptp4l[214733.206]: master offset     -28767 s0 freq  -25546 path delay    130743'
 
+    ## this output is used when free_running = 0
+    # pattern = '^(.*)ptp4l\[(.+)\]: rms\s+(-?[0-9]+) max (\d+) freq\s+([+-]\d+) .* delay\s+(-?\d+) .*$'
+    # test_string = 'ptp4l[3235037.837]: rms 324564 max 326176 freq -8602326 +/-  77 delay 334763 +/-   0'
     
     data = {
         "timestamp": [],
@@ -30,6 +36,9 @@ def parse_ptp_log(log_file):
         pattern,
         re.IGNORECASE
     )
+    
+    min_ts   =  20
+    interval = 120
     
     first_time = 0
     with open(log_file, "r") as file:
@@ -47,6 +56,13 @@ def parse_ptp_log(log_file):
                 if first_time == 0:
                     first_time = float(kernel_time)
                 kernel_time = float(kernel_time) - first_time
+                
+                # ensure that we plot only in period of [min_ts, interval+min_ts]
+                if kernel_time < min_ts:
+                    continue
+                kernel_time -= min_ts
+                if kernel_time > interval:
+                    break
          
                 data["timestamp"].append(int(kernel_time))
                 data["master_offset"].append(float(master_offset))
@@ -72,7 +88,7 @@ def annotate_boxplot(ax, data):
                 f"Q1: {stats['q1']:.2f}\n"
                 f"Q3: {stats['q3']:.2f}"], loc="upper right", fontsize=10)
     
-def plot_metrics(data):
+def plot_metrics(data, output_file):
     """
     Plots the master offset, frequency offset, and path delay metrics along with boxplots.
     :param data: Dictionary containing timestamps and metric values.
@@ -85,6 +101,7 @@ def plot_metrics(data):
     plt.title("Master Offset Over Time")
     plt.xlabel("Timestamp")
     plt.ylabel("Master Offset (ns)")
+    #plt.yscale('log')  # Set y-axis to logarithmic scale
     plt.grid()
     plt.legend()
 
@@ -101,6 +118,7 @@ def plot_metrics(data):
     plt.title("Frequency Offset Over Time")
     plt.xlabel("Timestamp")
     plt.ylabel("Frequency Offset (PPM)")
+    #plt.yscale('log')  # Set y-axis to logarithmic scale
     plt.grid()
     plt.legend()
 
@@ -117,6 +135,7 @@ def plot_metrics(data):
     plt.title("Path Delay Over Time")
     plt.xlabel("Timestamp")
     plt.ylabel("Path Delay (ns)")
+    #plt.yscale('log')  # Set y-axis to logarithmic scale
     plt.grid()
     plt.legend()
 
@@ -130,13 +149,14 @@ def plot_metrics(data):
     
     plt.tight_layout()
     #plt.show()
-    plt.savefig( "output.pdf", dpi=30, format='pdf', bbox_inches='tight')
+    plt.savefig( output_file, dpi=30, format='pdf', bbox_inches='tight')
 
 
 if __name__ == "__main__":
         # Set up command-line argument parsing
     parser = argparse.ArgumentParser(description="Parse and plot PTP clock metrics from a log file.")
-    parser.add_argument("log_file", help="Path to the PTP log file to parse.")
+    parser.add_argument("--log-file", help="Path to the PTP log file to parse.")
+    parser.add_argument("--output-file", help="Path to the output file.", default="./output.pdf")
     
     args = parser.parse_args()
 
@@ -145,6 +165,6 @@ if __name__ == "__main__":
     
     # Plot the metrics
     if data["timestamp"]:
-        plot_metrics(data)
+        plot_metrics(data, args.output_file)
     else:
         print("No valid data found in the log file.")
