@@ -14,7 +14,7 @@ all: tc.json
 
 clean:
 	sudo mn -c
-	rm tc.p4.p4info.txt tc.json
+	rm tc.p4.p4info.txt tc.json topos/*.pdf
 	sudo rm -rf pcaps logs __pycache__
 
 	

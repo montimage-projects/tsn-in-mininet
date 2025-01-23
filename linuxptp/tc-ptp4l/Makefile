@@ -5,7 +5,9 @@ all:
 
 clean:
 	sudo mn -c
-
+	rm topos/*.pdf
+	sudo rm -rf pcaps logs __pycache__
+	
 draw:
 	python3 ../plot.py --log-file logs/ptp4l.slave.log
 

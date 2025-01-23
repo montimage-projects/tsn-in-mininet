@@ -30,7 +30,7 @@ const bit<16> PTP_PORT_320 = 320;
 
 const bit<4> PTP_MSG_SYNC           = 0x0;
 const bit<4> PTP_MSG_FOLLOW_UP      = 0x8;
-const bit<4> PTP_MSG_DELAY_REQUST   = 0x1;
+const bit<4> PTP_MSG_DELAY_REQUEST  = 0x1;
 const bit<4> PTP_MSG_DELAY_RESPONSE = 0x9;
 
 /**
@@ -140,7 +140,7 @@ header ptp_t {
     bit<8>  domainNumber;
     bit<8>  reserve_2;
     bit<16> flagField;
-    //bit<64> correctionField;
+    //correctionField;
     bit<48> correctionNs;
     bit<16> correctionSubNs;
     bit<32> reserve_3;
@@ -149,16 +149,15 @@ header ptp_t {
     bit<16> sequenceId;
     bit<8> controlField;
     bit<8> logMessageInterval;
+    bit<48> tsSeconds;
+    bit<32> tsNanoSeconds;
 }
 
-/*
-A sync and its follow_up messages are correlated using clockID (64bits) + portID (16bit) + sequenceID (16bit)
-=> a key of 96bits 
-*/
-struct ptp_key_t {
-    bit<80> sourcePortIdentity;
-    bit<16> sequenceId;
+header ptp_res_t {
+    bit<64> requestClockId;
+    bit<16> requestPortId;
 }
+
 
 struct metadata {
     /* empty */
@@ -172,6 +171,7 @@ struct headers {
     tcp_t        tcp;
     udp_t        udp;
     ptp_t        ptp;
+    ptp_res_t    ptp_res;
 
    tcp_option_t[MAX_TCP_OPTION_WORD] tcp_opt;
 
@@ -263,9 +263,17 @@ parser MyParser(packet_in packet,
     state parse_ptp {
         //log_msg("parsing PTP");
         packet.extract(hdr.ptp);
-        transition accept;
+        transition select(hdr.ptp.messageType) {
+            PTP_MSG_DELAY_RESPONSE : parse_ptp_response;
+            default                : accept;
+        }
     }
 
+    state parse_ptp_response {
+        //log_msg("parsing PTP Response");
+        packet.extract(hdr.ptp_res);
+        transition accept;
+    }
 }
 
 
@@ -286,7 +294,6 @@ control MyIngress(inout headers hdr,
                   inout metadata meta,
                   inout standard_metadata_t standard_metadata) {
 
-    //ptp_key_t ptp_key;
     /* default table and its actions for packet forwarding */
     action drop() {
         mark_to_drop(standard_metadata);
@@ -366,7 +373,7 @@ control MyIngress(inout headers hdr,
             
             // if we see a sync message (which needs to be sent on UDP port 319
             if ( hdr.ptp.messageType == PTP_MSG_SYNC 
-              || hdr.ptp.messageType == PTP_MSG_DELAY_REQUST  ){
+              || hdr.ptp.messageType == PTP_MSG_DELAY_REQUEST  ){
                //rember its arrival time
                //log_msg("ptp_store_arrival_time({}, {}, {})", {hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId});
                ptp_store_ingress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId );
@@ -388,6 +395,9 @@ control MyEgress(inout headers hdr,
     bit<64> egressNs;
     bit<64> correctionNs;
     
+    bit<64> clockId;
+    bit<16> portId;
+    
     apply {
          // Prune multicast packet to ingress port to preventing loop
          if (std_meta.egress_port == std_meta.ingress_port){
@@ -405,9 +415,23 @@ control MyEgress(inout headers hdr,
             if ( hdr.ptp.messageType == PTP_MSG_FOLLOW_UP 
               || hdr.ptp.messageType == PTP_MSG_DELAY_RESPONSE  
               ){
+               // by default we use the clockId and portId of the actual packet to correlate
+               clockId = hdr.ptp.clockId;
+               portId  = hdr.ptp.portId;
+            
+               // in case of delay_req and delay_res messages,
+               //  the master will report clockId and portId of delay_req message
+               //  at the end of delay_res message.
+               //  => Thus delay_res message contains 2 clockId values: 
+               //   one is of master, another (at the end) is belong to the slave who
+               //   requested (via delay_req message)
+               if ( hdr.ptp.messageType == PTP_MSG_DELAY_RESPONSE ){
+                   clockId = hdr.ptp_res.requestClockId;
+                   portId  = hdr.ptp_res.requestPortId;
+               }
                //get delay of sync message
-               ptp_get_ingress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId, ingressNs );
-               ptp_get_egress_mac_tstamp( hdr.ptp.clockId, hdr.ptp.portId, hdr.ptp.sequenceId, egressNs );
+               ptp_get_ingress_mac_tstamp( clockId, portId, hdr.ptp.sequenceId, ingressNs );
+               ptp_get_egress_mac_tstamp(  clockId, portId, hdr.ptp.sequenceId, egressNs );
                
                correctionNs = egressNs - ingressNs;
                //log_msg("ptp delay = {}", {correctionNs});
@@ -458,6 +482,7 @@ control MyDeparser(packet_out packet, in headers hdr) {
         packet.emit(hdr.tcp_opt);
         packet.emit(hdr.udp);
         packet.emit(hdr.ptp);
+        packet.emit(hdr.ptp_res);
     }
 }
 
@@ -467,10 +492,10 @@ control MyDeparser(packet_out packet, in headers hdr) {
 
 //switch architecture
 V1Switch(
-MyParser(),
-MyVerifyChecksum(),
-MyIngress(),
-MyEgress(),
-MyComputeChecksum(),
-MyDeparser()
+    MyParser(),
+    MyVerifyChecksum(),
+    MyIngress(),
+    MyEgress(),
+    MyComputeChecksum(),
+    MyDeparser()
 ) main;

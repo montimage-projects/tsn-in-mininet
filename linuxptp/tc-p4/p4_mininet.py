@@ -143,7 +143,7 @@ class P4Switch(Switch):
         ## log level
         ## supported values  'trace', 'debug', 'info', 'warn', 'error', off';
         ## default is 'trace'
-        args.append("--log-level warn") 
+        args.append("--log-level debug") 
         # dump traffic to pcap files
         args.append("--pcap %s"%( mkdir("./pcaps") ))
         # TCP port to config the switch
