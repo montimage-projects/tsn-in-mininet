@@ -33,6 +33,12 @@ const bit<4> PTP_MSG_FOLLOW_UP      = 0x8;
 const bit<4> PTP_MSG_DELAY_REQUEST  = 0x1;
 const bit<4> PTP_MSG_DELAY_RESPONSE = 0x9;
 
+// standard size of each message
+#define PTP_MSG_LEN_FOLLOW_UP      44
+// 44 bytes + 10 bytes of request IDs (8bytes of clockId + 2 bytes of portId)
+#define PTP_MSG_LEN_DELAY_RESPONSE 54
+
+
 /**
 Get the timestamp of the current packet when it arrived at its input NIC
 */
@@ -131,6 +137,7 @@ header udp_t {
     bit<16> checksum;
 }
 
+// 44 bytes
 header ptp_t {
     bit<4>  transportSpecific;
     bit<4>  messageType;
@@ -158,24 +165,51 @@ header ptp_res_t {
     bit<16> requestPortId;
 }
 
+//I select a unique ID for the new TLV which contains inband-network telemetry data
+/* Existing TLV types:
+0x0001	Management TLV
+0x0002	Organization Extension TLV
+0x0003	Request Unicast Transmission TLV
+0x0004	Grant Unicast Transmission TLV
+0x0005	Cancel Unicast Transmission TLV
+0x0006	Acknowledge Cancel Unicast TLV
+*/
+const bit<16> PTP_TLV_INT_TYPE  = 0x0010;
+// we use 24 bytes of data
+const bit<16> PTP_TLV_INT_LENGTH = 24;
+header ptp_tlv_int_t {
+    bit<16> tlvType;
+    bit<16> fieldLength;
+    // 24bytes of data
+    bit<64> switchId;
+    bit<64> ingressTstamp;
+    bit<64> egressTstamp;
+}
 
-struct metadata {
-    /* empty */
-    //int_metadata _int;
+#define MAX_PTP_TLV_BYTES 1500
+header ptp_tlv_t{
+   bit<8> data;
 }
 
 struct headers {
-    ethernet_t   ethernet;
-    vlan_h       vlan;
-    ipv4_t       ipv4;
-    tcp_t        tcp;
-    udp_t        udp;
-    ptp_t        ptp;
-    ptp_res_t    ptp_res;
-
-   tcp_option_t[MAX_TCP_OPTION_WORD] tcp_opt;
-
+    ethernet_t    ethernet;
+    vlan_h        vlan;
+    ipv4_t        ipv4;
+    tcp_t         tcp;
+    udp_t         udp;
+    ptp_t         ptp;
+    ptp_res_t     ptp_res;
+    ptp_tlv_t[MAX_PTP_TLV_BYTES]     ptp_tlv; //existing TLV elements
+    ptp_tlv_int_t ptp_int;
+    
+    tcp_option_t[MAX_TCP_OPTION_WORD] tcp_opt;
 }
+
+
+struct metadata {
+    /* empty */
+}
+
 
 /*************************************************************************
 *********************** P A R S E R  ***********************************
@@ -188,6 +222,8 @@ parser MyParser(packet_in packet,
 
     //local variable to count TCP options in number of words
     bit<4> tcp_opt_cnt = 0;
+    // number of bytes for the existing TLV elements
+    bit<16> ptp_tlv_cnt = 0;
 
     state start {
         //log_msg("start parsing");
@@ -265,6 +301,7 @@ parser MyParser(packet_in packet,
         packet.extract(hdr.ptp);
         transition select(hdr.ptp.messageType) {
             PTP_MSG_DELAY_RESPONSE : parse_ptp_response;
+            PTP_MSG_FOLLOW_UP      : parse_ptp_follow_up;
             default                : accept;
         }
     }
@@ -272,7 +309,31 @@ parser MyParser(packet_in packet,
     state parse_ptp_response {
         //log_msg("parsing PTP Response");
         packet.extract(hdr.ptp_res);
-        transition accept;
+        ptp_tlv_cnt = hdr.ptp.messageLength - PTP_MSG_LEN_DELAY_RESPONSE;
+        
+        transition select( ptp_tlv_cnt ){
+            0      : accept; //no more option
+            default: parse_ptp_tlv;
+        }
+    }
+
+    state parse_ptp_follow_up {
+        //log_msg("parsing PTP follow-up");
+        ptp_tlv_cnt = hdr.ptp.messageLength - PTP_MSG_LEN_FOLLOW_UP;
+        
+        transition select( ptp_tlv_cnt ){
+            0      : accept; //no more option
+            default: parse_ptp_tlv;
+        }
+    }
+
+    state parse_ptp_tlv {
+        packet.extract( hdr.ptp_tlv.next );
+        ptp_tlv_cnt = ptp_tlv_cnt - 1;
+        transition select( ptp_tlv_cnt ){
+             0     : accept; //no more option
+            default: parse_ptp_tlv;
+        }
     }
 }
 
@@ -415,6 +476,10 @@ control MyEgress(inout headers hdr,
             if ( hdr.ptp.messageType == PTP_MSG_FOLLOW_UP 
               || hdr.ptp.messageType == PTP_MSG_DELAY_RESPONSE  
               ){
+               //Step 1: get ingress and egress timestamps of the corresponding packet
+               // follow_up msg  <--- sync msg
+               // delay response <--- delay request
+               
                // by default we use the clockId and portId of the actual packet to correlate
                clockId = hdr.ptp.clockId;
                portId  = hdr.ptp.portId;
@@ -433,10 +498,24 @@ control MyEgress(inout headers hdr,
                ptp_get_ingress_mac_tstamp( clockId, portId, hdr.ptp.sequenceId, ingressNs );
                ptp_get_egress_mac_tstamp(  clockId, portId, hdr.ptp.sequenceId, egressNs );
                
+               //Step 2: update the correctionField to reflex the delay
                correctionNs = egressNs - ingressNs;
                //log_msg("ptp delay = {}", {correctionNs});
                //add delay of its sync message to the correctionField
                hdr.ptp.correctionNs = hdr.ptp.correctionNs + (bit<48>)correctionNs;
+
+
+               //Step 3: add inband-network telemetry
+               //introduce a TLV to contain arrival time and depature time
+               hdr.ptp_int.setValid();
+               hdr.ptp_int.tlvType       = PTP_TLV_INT_TYPE;
+               hdr.ptp_int.fieldLength   = PTP_TLV_INT_LENGTH;  
+               hdr.ptp_int.switchId      = 1;
+               hdr.ptp_int.ingressTstamp = ingressNs;
+               hdr.ptp_int.egressTstamp  = egressNs;
+               // do not forget to update size of PTP message
+               // +4: 4 bytes of header (2bytes of tlvType + 2bytes of fieldLength
+               hdr.ptp.messageLength     = hdr.ptp.messageLength + PTP_TLV_INT_LENGTH + 4;
             }
          }
     }
@@ -483,6 +562,8 @@ control MyDeparser(packet_out packet, in headers hdr) {
         packet.emit(hdr.udp);
         packet.emit(hdr.ptp);
         packet.emit(hdr.ptp_res);
+        packet.emit(hdr.ptp_tlv);
+        packet.emit(hdr.ptp_int);
     }
 }
 

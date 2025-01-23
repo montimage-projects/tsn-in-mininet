@@ -8,7 +8,7 @@
     "switches": {
         "s1": { "config" : "configs/s1.txt", "override_ports":{"1": "enp0s31f6"} }
     },
-    "links": [
+    "links-": [
         ["s1-p2", "h2"] 
     ]
 }

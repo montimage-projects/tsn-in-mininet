@@ -132,7 +132,6 @@ class P4Switch(Switch):
         self.config_intfs()
         
         bmv2_exec = "simple_switch"
-        bmv2_exec = "/home/montimage/hn/behavioral-model/targets/simple_switch/.libs/simple_switch"
         if os.getenv("BMV2_SWITCH_EXE") is not None:
             bmv2_exec = os.getenv("BMV2_SWITCH_EXE")
             

@@ -1,7 +1,7 @@
 all:
 	rm -rf logs
 	mkdir logs
-	sudo python3 main.py --topo-file ./topos/1-switch.json --enter-cli
+	sudo python3 main.py --topo-file ./topos/3-virtuals.json --enter-cli
 
 clean:
 	sudo mn -c
