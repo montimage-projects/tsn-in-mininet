@@ -130,7 +130,7 @@ if __name__ == '__main__':
     setLogLevel( 'debug' )
 
         # Set up command-line argument parsing
-    parser = argparse.ArgumentParser(description="Parse and plot PTP clock metrics from a log file.")
+    parser = argparse.ArgumentParser(description="Emulate a PTP time synchronsiation network using mininet.")
     parser.add_argument("--topo-file", help="Path to the JSON containing topology defintion.")
     parser.add_argument("--enter-cli", help="Whether enter in mininet CLI", action="store_true", default=False)
     
