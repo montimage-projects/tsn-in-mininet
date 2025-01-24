@@ -175,15 +175,18 @@ header ptp_res_t {
 0x0006	Acknowledge Cancel Unicast TLV
 */
 const bit<16> PTP_TLV_INT_TYPE  = 0x0010;
-// we use 18 bytes of data
-const bit<16> PTP_TLV_INT_LENGTH = 18;
+// we use 24 bytes of data
+const bit<16> PTP_TLV_INT_LENGTH = 24;
 header ptp_tlv_int_t {
     bit<16> tlvType;
     bit<16> fieldLength;
-    // 18bytes of data
+    // INT payload
     bit<16> switchId;
     bit<64> ingressTstamp;
     bit<64> egressTstamp;
+    // we need to record correctionField which may be ajusted by other transparent clocks
+    //  (these clocks are not implemented by our P4 so they do not provide INT data)
+    bit<48> correctionNs;
 }
 
 #define MAX_PTP_TLV_BYTES 1500
@@ -518,9 +521,6 @@ control MyEgress(inout headers hdr,
                //Step 2: update the correctionField to reflex the delay
                correctionNs = egressNs - ingressNs;
                //log_msg("ptp delay = {}", {correctionNs});
-               //add delay of its sync message to the correctionField
-               hdr.ptp.correctionNs = hdr.ptp.correctionNs + (bit<48>)correctionNs;
-
 
                //Step 3: add inband-network telemetry
                //introduce a TLV to contain arrival time and depature time
@@ -530,6 +530,12 @@ control MyEgress(inout headers hdr,
                hdr.ptp_int.switchId      = switchId;
                hdr.ptp_int.ingressTstamp = ingressNs;
                hdr.ptp_int.egressTstamp  = egressNs;
+               hdr.ptp_int.correctionNs  = hdr.ptp.correctionNs;
+               
+               //add delay of its sync message to the correctionField
+               // (currently we do not support subNano => no need to ajust this field)
+               hdr.ptp.correctionNs = hdr.ptp.correctionNs + (bit<48>)correctionNs;
+
                // do not forget to update size of PTP message
                // +4: 4 bytes of header (2bytes of tlvType + 2bytes of fieldLength
                hdr.ptp.messageLength     = hdr.ptp.messageLength + PTP_TLV_INT_LENGTH + 4;
