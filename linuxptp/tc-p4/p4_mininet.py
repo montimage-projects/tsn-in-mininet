@@ -9,6 +9,7 @@ import os
 import tempfile
 import psutil
 import subprocess
+import multiprocessing
 
 def check_listening_on_port(port):
     for c in psutil.net_connections(kind='inet'):
@@ -135,7 +136,7 @@ class P4Switch(Switch):
         if os.getenv("BMV2_SWITCH_EXE") is not None:
             bmv2_exec = os.getenv("BMV2_SWITCH_EXE")
             
-        args = [bmv2_exec, self.json_file]
+        args = ["nice -n -10", bmv2_exec, self.json_file]
         args.append("--device-id %d"%( self.device_id ))
         # print log to console which will be then redirected to file
         args.append("--log-console")
@@ -190,6 +191,11 @@ class P4Switch(Switch):
 
         #remember pid
         self.p4_pid = pid
+        
+        #bind process on a fixed CPU core to avoid context switching
+        nb_core = multiprocessing.cpu_count()
+        core_index = self.device_id % nb_core
+        self.cmd('taskset -cp %d %d' % (core_index, pid))
         
     def stop(self):
         "Terminate P4 switch."

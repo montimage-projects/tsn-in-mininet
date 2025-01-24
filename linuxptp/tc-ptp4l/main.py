@@ -151,6 +151,7 @@ if __name__ == '__main__':
     if args.enter_cli:
         CLI(net)
     else:
+        info('sleep 180 sec, then exit\n')
         time.sleep(180)
     
     

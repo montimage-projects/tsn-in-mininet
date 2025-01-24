@@ -1,4 +1,35 @@
 {
+  "__inputs": [
+    {
+      "name": "DS_YESOREYERAM-INFINITY-DATASOURCE",
+      "label": "yesoreyeram-infinity-datasource",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "yesoreyeram-infinity-datasource",
+      "pluginName": "Infinity"
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "11.3.0"
+    },
+    {
+      "type": "panel",
+      "id": "trend",
+      "name": "Trend",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "yesoreyeram-infinity-datasource",
+      "name": "Infinity",
+      "version": "2.12.2"
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -18,13 +49,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 2,
+  "id": null,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "deawa7o6e8qv4e"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Interval time between two consecutive Sync messages at at master",
       "fieldConfig": {
@@ -112,7 +143,7 @@
               "type": "number"
             },
             {
-              "selector": "master",
+              "selector": "master.iat",
               "text": "",
               "type": "number"
             }
@@ -121,7 +152,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "deawa7o6e8qv4e"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -148,7 +179,7 @@
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "deawa7o6e8qv4e"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Interval arrival time between two consecutive Delay_request messages at Master",
       "fieldConfig": {
@@ -252,7 +283,7 @@
               "type": "number"
             },
             {
-              "selector": "master",
+              "selector": "master.iat",
               "text": "",
               "type": "number"
             }
@@ -261,7 +292,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "deawa7o6e8qv4e"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -282,14 +313,14 @@
           }
         }
       ],
-      "title": "Interval time of Delay_request messages at Master",
+      "title": "Interval arrival time of Delay_request messages at Master",
       "transparent": true,
       "type": "trend"
     },
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "deawa7o6e8qv4e"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Difference of IATs of Sync messages at each switch when comparing with IAT at master",
       "fieldConfig": {
@@ -342,9 +373,22 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sequence ID"
+            },
+            "properties": [
+              {
+                "id": "unit"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -377,17 +421,17 @@
               "type": "number"
             },
             {
-              "selector": "switch-0",
+              "selector": "switch-0.iat",
               "text": "",
               "type": "number"
             },
             {
-              "selector": "switch-1",
+              "selector": "switch-1.iat",
               "text": "",
               "type": "number"
             },
             {
-              "selector": "switch-2",
+              "selector": "switch-2.iat",
               "text": "",
               "type": "number"
             }
@@ -396,7 +440,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "deawa7o6e8qv4e"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -423,9 +467,9 @@
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "deawa7o6e8qv4e"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
-      "description": "",
+      "description": "Difference of IATs of Delay_request messages at each switch when comparing with its IAT at master",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -476,9 +520,22 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "ns"
         },
-        "overrides": []
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sequence ID"
+            },
+            "properties": [
+              {
+                "id": "unit"
+              }
+            ]
+          }
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -511,17 +568,17 @@
               "type": "number"
             },
             {
-              "selector": "switch-0",
+              "selector": "switch-0.iat",
               "text": "",
               "type": "number"
             },
             {
-              "selector": "switch-1",
+              "selector": "switch-1.iat",
               "text": "",
               "type": "number"
             },
             {
-              "selector": "switch-2",
+              "selector": "switch-2.iat",
               "text": "",
               "type": "number"
             }
@@ -530,7 +587,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "deawa7o6e8qv4e"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -554,9 +611,303 @@
       "title": "IAT Deviation of Delay_request messages",
       "transparent": true,
       "type": "trend"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
+      },
+      "description": "Ingress time variation of Sync messages at each switch when comparing with master",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": true,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ns"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sequence ID"
+            },
+            "properties": [
+              {
+                "id": "unit"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xField": "sequence ID"
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "alias": "Random Walk",
+          "columns": [
+            {
+              "selector": "sequence-id",
+              "text": "sequence ID",
+              "type": "number"
+            },
+            {
+              "selector": "switch-0.ingressTstamp-master",
+              "text": "",
+              "type": "number"
+            },
+            {
+              "selector": "switch-1.ingressTstamp-master",
+              "text": "",
+              "type": "number"
+            },
+            {
+              "selector": "switch-2.ingressTstamp-master",
+              "text": "",
+              "type": "number"
+            }
+          ],
+          "computed_columns": [],
+          "dataOverrides": [],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
+          },
+          "filters": [],
+          "format": "as-is",
+          "global_query_id": "",
+          "json_options": {
+            "columnar": false
+          },
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "uql": "parse-json",
+          "url": "http://localhost:4000/sync",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "Ingress Time variation of Sync messages",
+      "type": "trend"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
+      },
+      "description": "Egress time of Delay_request messages at each switch when comparing with master",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": true,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "ns"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sequence ID"
+            },
+            "properties": [
+              {
+                "id": "unit"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xField": "sequence ID"
+      },
+      "pluginVersion": "11.3.0",
+      "targets": [
+        {
+          "alias": "Random Walk",
+          "columns": [
+            {
+              "selector": "sequence-id",
+              "text": "sequence ID",
+              "type": "number"
+            },
+            {
+              "selector": "switch-0.egressTstamp-master",
+              "text": "",
+              "type": "number"
+            },
+            {
+              "selector": "switch-1.egressTstamp-master",
+              "text": "",
+              "type": "number"
+            },
+            {
+              "selector": "switch-2.egressTstamp-master",
+              "text": "",
+              "type": "number"
+            }
+          ],
+          "computed_columns": [],
+          "dataOverrides": [],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
+          },
+          "filters": [],
+          "format": "as-is",
+          "global_query_id": "",
+          "json_options": {
+            "columnar": false
+          },
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "uql": "parse-json",
+          "url": "http://localhost:4000/delay_req",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "Egress time variation of Delay_request messages",
+      "transparent": true,
+      "type": "trend"
     }
   ],
-  "preload": false,
   "refresh": "1s",
   "schemaVersion": 40,
   "tags": [],
@@ -586,6 +937,6 @@
   "timezone": "browser",
   "title": "Monitor PTP messages",
   "uid": "aeawgko20jz0ge",
-  "version": 19,
+  "version": 23,
   "weekStart": ""
 }

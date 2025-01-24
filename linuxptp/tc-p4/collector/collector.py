@@ -1,3 +1,4 @@
+#!/bin/env python3
 from scapy.all import Packet, rdpcap, sniff, bind_layers, Raw, BitField, ByteField, FieldListField
 from scapy.layers.l2 import Ether
 
@@ -138,6 +139,7 @@ def analyse_reports(ptp, reports):
     global lastElement
 
     tag = "sync"
+    # if current ptp msg is a delay_res ==> we are analysing its delay_req
     if ptp.messageType == PTP_MSG_TYPE_DELAY_RESPONSE:
         tag = "delay_req"
 
@@ -155,10 +157,10 @@ def analyse_reports(ptp, reports):
     # need to ensure that lsequenceId + 1 == sequenceId
     # ensure len(lreports) == len(reports)
     if lsequenceId + 1 != sequenceId:
-        print(f"Error: two messages are not consecutive ({lsequenceId}, {sequenceId})")
+        print(f"Error: two {tag} messages are not consecutive ({lsequenceId}, {sequenceId})")
         return
     if len(lreports) != len(reports):
-        print(f"Error: two messages are not same size ({len(lreports)}, {len(reports)})")
+        print(f"Error: two {tag} messages are not same size ({len(lreports)}, {len(reports)})")
         return
 
     #print("-----")
@@ -168,22 +170,39 @@ def analyse_reports(ptp, reports):
     elem = dict()
     elem["sequence-id"] = sequenceId
 
+    NS_SEC = 1000*1000*1000
+    masterTime = (ptp.tsSeconds * NS_SEC + ptp.tsNanoSeconds)
+    
     #IAT between 2 sync messages at the master side
-    iatMaster = (ptp.tsSeconds - lptp.tsSeconds) * 1000*1000*1000 + (ptp.tsNanoSeconds - lptp.tsNanoSeconds)
+    iatMaster =  masterTime - (lptp.tsSeconds * NS_SEC + lptp.tsNanoSeconds)
 
-    elem["master"] = iatMaster
+    elem["master"] = {"iat": iatMaster, "ingressTstamp": masterTime, "egressTstamp": masterTime}
+
     # get delay of each switch
     for i in range(len(reports)):
         report  = reports[i]
         lreport = lreports[i]
 
-        
-        #different between 2 consecutive messages
-        iat  = report.ingressTstamp - lreport.ingressTstamp
-        iat -= (report.correctionNs - lreport.correctionNs)
+        # if msg is a delay_res ==> we are analysing its delay_req
+        #  delay_res is in drection from slave --> to --> master
+        #  => we need to base on the moment it is sent out
+        if ptp.messageType == PTP_MSG_TYPE_DELAY_RESPONSE:
+            iat = report.egressTstamp - lreport.egressTstamp
+            iat += (report.correctionNs - lreport.correctionNs)
+        else:
+            #different between 2 consecutive messages
+            iat  = report.ingressTstamp - lreport.ingressTstamp
+            iat -= (report.correctionNs - lreport.correctionNs)
+
         #iat -= ptp.logMessageInterval
         iat -= iatMaster
-        elem[ f"switch-{report.switchId}" ] =  iat
+        elem[ f"switch-{report.switchId}" ] =  {"iat": iat, 
+                "ingressTstamp": report.ingressTstamp, 
+                "egressTstamp": report.egressTstamp,
+                "ingressTstamp-master": report.ingressTstamp - masterTime, 
+                "egressTstamp-master": report.egressTstamp - masterTime,
+                "delay": report.egressTstamp - report.ingressTstamp
+        }
 
     push_stat_to_http_server( tag, elem )
 
