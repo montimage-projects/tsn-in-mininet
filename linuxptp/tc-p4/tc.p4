@@ -175,13 +175,13 @@ header ptp_res_t {
 0x0006	Acknowledge Cancel Unicast TLV
 */
 const bit<16> PTP_TLV_INT_TYPE  = 0x0010;
-// we use 24 bytes of data
-const bit<16> PTP_TLV_INT_LENGTH = 24;
+// we use 18 bytes of data
+const bit<16> PTP_TLV_INT_LENGTH = 18;
 header ptp_tlv_int_t {
     bit<16> tlvType;
     bit<16> fieldLength;
-    // 24bytes of data
-    bit<64> switchId;
+    // 18bytes of data
+    bit<16> switchId;
     bit<64> ingressTstamp;
     bit<64> egressTstamp;
 }
@@ -411,6 +411,8 @@ control MyIngress(inout headers hdr,
         size = 1024;
         default_action = drop();
     }
+    
+
     apply {
          ptp_counter_init(10); //can store at most 10 sync messages
          
@@ -458,8 +460,23 @@ control MyEgress(inout headers hdr,
     
     bit<64> clockId;
     bit<16> portId;
+    bit<16> switchId = 0;
+    
+    // this table is configure by p4_mininet.py
+    action set_switch_id( bit<16> sId ){
+        switchId = sId;
+    }
+    table config_switch {
+        actions = {
+            set_switch_id;
+        }
+    }
+    
     
     apply {
+         //retrieve switchId from outside
+         config_switch.apply();
+
          // Prune multicast packet to ingress port to preventing loop
          if (std_meta.egress_port == std_meta.ingress_port){
             mark_to_drop(std_meta);
@@ -510,7 +527,7 @@ control MyEgress(inout headers hdr,
                hdr.ptp_int.setValid();
                hdr.ptp_int.tlvType       = PTP_TLV_INT_TYPE;
                hdr.ptp_int.fieldLength   = PTP_TLV_INT_LENGTH;  
-               hdr.ptp_int.switchId      = 1;
+               hdr.ptp_int.switchId      = switchId;
                hdr.ptp_int.ingressTstamp = ingressNs;
                hdr.ptp_int.egressTstamp  = egressNs;
                // do not forget to update size of PTP message

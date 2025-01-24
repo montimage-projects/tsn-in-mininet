@@ -84,15 +84,15 @@ class P4Switch(Switch):
     def setup(cls):
         pass
 
-    def program_switch_cli(self):
+    def program_switch_cli(self, config_file):
         """ This method will start up the CLI and use the contents of the
             command files as input.
         """
 
         info('Configuring P4 switch %s with file %s\n' % (self.name, self.config_file))
-        with open(self.config_file, 'r') as fin:
+        with open(config_file, 'r') as fin:
             cli_outfile = '%s/p4s.%s_cli_output.log'%(self.log_dir, self.name)
-            with open(cli_outfile, 'w') as fout:
+            with open(cli_outfile, 'w+') as fout:
                 subprocess.Popen(['simple_switch_CLI', 
                     '--thrift-port', str(self.thrift_port)],
                     stdin=fin, stdout=fout)
@@ -180,7 +180,13 @@ class P4Switch(Switch):
         debug("PID of P4 switch {} PID is {}.\n".format(self.name, pid))
 
         # configure the routing tables
-        self.program_switch_cli()
+        #1. configure switch ID for Inband network temetry
+        with tempfile.NamedTemporaryFile(mode='w', encoding='utf-8') as f:
+            f.write("table_set_default config_switch set_switch_id %d" % self.device_id)
+            self.program_switch_cli(f.name)
+
+        #2. configure routers for routing packets
+        self.program_switch_cli(self.config_file)
 
         #remember pid
         self.p4_pid = pid

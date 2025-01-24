@@ -1,7 +1,11 @@
-from scapy.all import *
+from scapy.all import Packet, rdpcap, sniff, bind_layers, Raw, BitField, ByteField, FieldListField
 from scapy.layers.l2 import Ether
 
-import argparse, sys
+import threading
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import json
+
+import argparse, sys, time
 
 # Define constants for PTPv2 protocol
 # EtherType for PTPv2 over Ethernet
@@ -56,7 +60,7 @@ class TLV(Packet):
 
 class INT(Packet):
     fields_desc = [ 
-        BitField("switchId", 0, 64),
+        BitField("switchId", 0, 16),
         BitField("ingressTstamp", 0, 64), #timestamp in nanosecond
         BitField("egressTstamp", 0, 64)   #timestamp in nanosecond
     ]
@@ -92,6 +96,7 @@ def analyze_packet(packet):
     if Ether in packet:
         eth = packet[Ether]
         if eth.type == PTP_ETHERTYPE:  # Check for PTPv2 EtherType
+            print("-" * 50)
             print("PTPv2 Packet Detected!")
             print(f"Source MAC: {eth.src}")
             print(f"Destination MAC: {eth.dst}")
@@ -125,32 +130,94 @@ def analyze_packet(packet):
             tlvRawLen = ptp.messageLength - ptpMsgLen
             rawPayload = packet[Raw].load
             reports = parse_int_reports( rawPayload[0:tlvRawLen] )
-            print(reports)
+            analyse_reports(reports)
+
+def analyse_reports(reports):
+    elem = dict()
+    elem["time"] = int(time.time() * 1000)  # Current time in miliseconds since epoch
+    
+    # get delay of each switch
+    for report in reports:
+        elem[ report.switchId ] = report.egressTstamp - report.ingressTstamp
+    
+    push_stat_to_http_server( elem )
+
+# Lock to safely update the shared number
+number_lock = threading.Lock()
+# Global variables for tracking statistics
+data_history = []  # List to store historical bandwidth data points
+MAX_HISTORY_LENGTH = 100  # Maximum number of data points to store
+
+def push_stat_to_http_server( elem ):
+    with number_lock:
+        # append element to tail of queue
+        data_history.append( elem )
+            # Trim history to the maximum length
+        if len(data_history) > MAX_HISTORY_LENGTH:
+            data_history.pop(0)
+
+
+## HTTP server to expose data to grafana
+# Custom HTTP handler
+class CustomHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        global data_history
+
+        json_data = ""
+        # Read the shared number safely
+        with number_lock:
+            json_data = json.dumps( data_history )
+
+        # Respond with the current number in JSON format
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json_data.encode("utf-8"))
+
+# Function to run the HTTP server in a separate thread
+def run_http_server(ip, port):
+
+    server = HTTPServer((ip, port), CustomHandler)
+    print(f"HTTP server is running on port {port}...")
+    server.serve_forever()
+
+def start_http_server_thread(ip, port):
+    # Start the HTTP server in a separate thread
+    server_thread = threading.Thread(target=run_http_server, args=(ip, port))
+    # Allow the program to exit even if the thread is running
+    server_thread.daemon = True
+    server_thread.start()
+## end HTTP server
 
 # Main entry point
 if __name__ == "__main__":
         # Set up command-line argument parsing
     parser = argparse.ArgumentParser(description="Sniff packets from a given network and extract its PTP protocol.")
     parser.add_argument("--nic", default="eth0", help="Network interface to be sniffed")
-    
+    parser.add_argument("--ip",   default="127.0.0.1", help="IP of HTTP server to expose stats to Grafana")
+    parser.add_argument("--port", default=4000, help="Port number of HTTP server to expose stats to Grafana")
+
     args = parser.parse_args()
     interface = args.nic
 
     try:
+        start_http_server_thread( args.ip, args.port )
+
         print(f"Sniffing on interface: {interface}")
         # Filter for Ethernet frames with PTP EtherType
-        #sniff(iface=interface, filter=f"ether proto {PTP_ETHERTYPE}", prn=analyze_packet)
+        sniff(iface=interface, filter=f"ether proto {PTP_ETHERTYPE}", prn=analyze_packet)
         
         #read the pcap file and extract the features for each packet
-        all_packets = rdpcap("pcaps/s3-eth2_out.pcap")
+        #all_packets = rdpcap("pcaps/s3-eth2_out.pcap")
         # for each packet in the pcap file
-        i = 0
-        for packet in all_packets:
-            print(i, "-" * 50)
-            analyze_packet(packet)
-            i += 1
-            if i > 10:
-                break
+
+        #i = 0
+        #for packet in all_packets:
+        #    print(i, "-" * 50)
+        #    analyze_packet(packet)
+        #    i += 1
+        #    if i > 10:
+        #        break
 
     except:
         raise
