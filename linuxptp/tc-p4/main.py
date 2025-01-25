@@ -5,6 +5,9 @@ from mininet.node import Node
 from mininet.log import setLogLevel, info
 from mininet.link import Link
 from mininet.cli import CLI
+from mininet.util import pmonitor
+
+from signal import SIGINT
 
 import time, json, argparse
 from p4_mininet import P4Host, P4Switch
@@ -105,12 +108,15 @@ class ExerciseTopo(Topo):
 
     def execute_command_on_node(self, host, command):
         info(f"  {host.name} is executing: {command}\n")
-        proc = host.popen("bash", "-c", command)
+        proc = host.popen(command)
         # remember its handle so that we can stop it when existing
         self.popen_processes.append( proc )
 
     def stop_popen_processes(self):
         for proc in self.popen_processes:
+            #gracefull termination
+            #proc.send_signal( SIGINT )
+
             proc.terminate()
 
     def program_switches(self, net):
@@ -150,21 +156,25 @@ if __name__ == '__main__':
     topo = ExerciseTopo(log_dir="./logs", topo_file=args.topo_file)
     net = Mininet(topo=topo, controller=None)
 
-    net.start()
-    
-    time.sleep(1)
-    # some programming that must happen after the net has started
-    topo.program_switches(net)
-    topo.program_hosts(net)
+    try:
+        net.start()
+        
+        time.sleep(1)
+        # some programming that must happen after the net has started
+        topo.program_switches(net)
+        topo.program_hosts(net)
 
 
-    time.sleep(1)
-    if args.enter_cli:
-        CLI(net)
-    else:
-        info('sleep 180 sec, then exit\n')
-        time.sleep(180)
-    
-    topo.stop_popen_processes()
-    net.stop()
-    info( 'bye\n' )
+        time.sleep(1)
+        if args.enter_cli:
+            CLI(net)
+        else:
+            info('sleep 180 sec, then exit\n')
+            time.sleep(180)
+    except Exception as e:
+        # Handles any other exception
+        print(f"An unexpected error occurred: {e}")
+    finally:
+        topo.stop_popen_processes()
+        net.stop()
+        info( 'bye\n' )

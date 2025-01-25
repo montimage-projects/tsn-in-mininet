@@ -15,7 +15,7 @@
       "type": "grafana",
       "id": "grafana",
       "name": "Grafana",
-      "version": "11.3.0"
+      "version": "11.4.0"
     },
     {
       "type": "panel",
@@ -57,7 +57,7 @@
         "type": "yesoreyeram-infinity-datasource",
         "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
-      "description": "Interval time between two consecutive Sync messages at at master",
+      "description": "Interval time between two consecutive Sync messages at master and each switches",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -130,24 +130,13 @@
           "mode": "single",
           "sort": "none"
         },
-        "xField": "sequence ID"
+        "xField": "sequence-id"
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.4.0",
       "targets": [
         {
           "alias": "Random Walk",
-          "columns": [
-            {
-              "selector": "sequence-id",
-              "text": "sequence ID",
-              "type": "number"
-            },
-            {
-              "selector": "master.iat",
-              "text": "",
-              "type": "number"
-            }
-          ],
+          "columns": [],
           "computed_columns": [],
           "dataOverrides": [],
           "datasource": {
@@ -166,14 +155,14 @@
           "source": "url",
           "type": "json",
           "uql": "parse-json",
-          "url": "http://localhost:4000/sync",
+          "url": "http://localhost:4000/sync/iat",
           "url_options": {
             "data": "",
             "method": "GET"
           }
         }
       ],
-      "title": "Interval time of Sync messages at Master",
+      "title": "Interval time of Sync messages",
       "type": "trend"
     },
     {
@@ -181,7 +170,7 @@
         "type": "yesoreyeram-infinity-datasource",
         "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
-      "description": "Interval arrival time between two consecutive Delay_request messages at Master",
+      "description": "Interval arrival time between two consecutive Delay_request messages at Master and each switch",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -270,24 +259,13 @@
           "mode": "single",
           "sort": "none"
         },
-        "xField": "sequence ID"
+        "xField": "sequence-id"
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.4.0",
       "targets": [
         {
           "alias": "Random Walk",
-          "columns": [
-            {
-              "selector": "sequence-id",
-              "text": "sequence ID",
-              "type": "number"
-            },
-            {
-              "selector": "master.iat",
-              "text": "",
-              "type": "number"
-            }
-          ],
+          "columns": [],
           "computed_columns": [],
           "dataOverrides": [],
           "datasource": {
@@ -306,14 +284,14 @@
           "source": "url",
           "type": "json",
           "uql": "parse-json",
-          "url": "http://localhost:4000/delay_req",
+          "url": "http://localhost:4000/delay_req/iat",
           "url_options": {
             "data": "",
             "method": "GET"
           }
         }
       ],
-      "title": "Interval arrival time of Delay_request messages at Master",
+      "title": "Interval arrival time of Delay_request messages",
       "transparent": true,
       "type": "trend"
     },
@@ -380,7 +358,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "sequence ID"
+              "options": "sequence-id"
             },
             "properties": [
               {
@@ -408,34 +386,13 @@
           "mode": "single",
           "sort": "none"
         },
-        "xField": "sequence ID"
+        "xField": "sequence-id"
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.4.0",
       "targets": [
         {
           "alias": "Random Walk",
-          "columns": [
-            {
-              "selector": "sequence-id",
-              "text": "sequence ID",
-              "type": "number"
-            },
-            {
-              "selector": "switch-0.iat",
-              "text": "",
-              "type": "number"
-            },
-            {
-              "selector": "switch-1.iat",
-              "text": "",
-              "type": "number"
-            },
-            {
-              "selector": "switch-2.iat",
-              "text": "",
-              "type": "number"
-            }
-          ],
+          "columns": [],
           "computed_columns": [],
           "dataOverrides": [],
           "datasource": {
@@ -454,14 +411,14 @@
           "source": "url",
           "type": "json",
           "uql": "parse-json",
-          "url": "http://localhost:4000/sync",
+          "url": "http://localhost:4000/sync/iat-master",
           "url_options": {
             "data": "",
             "method": "GET"
           }
         }
       ],
-      "title": "IAT Deviation of Sync messages",
+      "title": "IAT Deviation of Sync messages wrt. Master",
       "type": "trend"
     },
     {
@@ -527,7 +484,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "sequence ID"
+              "options": "sequence-id"
             },
             "properties": [
               {
@@ -555,34 +512,13 @@
           "mode": "single",
           "sort": "none"
         },
-        "xField": "sequence ID"
+        "xField": "sequence-id"
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.4.0",
       "targets": [
         {
           "alias": "Random Walk",
-          "columns": [
-            {
-              "selector": "sequence-id",
-              "text": "sequence ID",
-              "type": "number"
-            },
-            {
-              "selector": "switch-0.iat",
-              "text": "",
-              "type": "number"
-            },
-            {
-              "selector": "switch-1.iat",
-              "text": "",
-              "type": "number"
-            },
-            {
-              "selector": "switch-2.iat",
-              "text": "",
-              "type": "number"
-            }
-          ],
+          "columns": [],
           "computed_columns": [],
           "dataOverrides": [],
           "datasource": {
@@ -601,14 +537,14 @@
           "source": "url",
           "type": "json",
           "uql": "parse-json",
-          "url": "http://localhost:4000/delay_req",
+          "url": "http://localhost:4000/delay_req/iat-master",
           "url_options": {
             "data": "",
             "method": "GET"
           }
         }
       ],
-      "title": "IAT Deviation of Delay_request messages",
+      "title": "IAT Deviation of Delay_request messages  wrt. Master",
       "transparent": true,
       "type": "trend"
     },
@@ -617,7 +553,258 @@
         "type": "yesoreyeram-infinity-datasource",
         "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
-      "description": "Ingress time variation of Sync messages at each switch when comparing with master",
+      "description": "Time delay attack detection on Sync messages",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": true,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sequence-id"
+            },
+            "properties": [
+              {
+                "id": "unit"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "id": 5,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xField": "sequence-id"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "alias": "Random Walk",
+          "columns": [],
+          "computed_columns": [],
+          "dataOverrides": [],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
+          },
+          "filters": [],
+          "format": "as-is",
+          "global_query_id": "",
+          "json_options": {
+            "columnar": false
+          },
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "uql": "parse-json",
+          "url": "http://localhost:4000/sync/under-attack",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "TDA of Sync messages",
+      "type": "trend"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
+      },
+      "description": "Time delay attack detection of Delay_request messages at each switch",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": true,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 0,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineStyle": {
+              "fill": "solid"
+            },
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "line"
+            }
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "sequence-id"
+            },
+            "properties": [
+              {
+                "id": "unit"
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": [],
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "single",
+          "sort": "none"
+        },
+        "xField": "sequence-id"
+      },
+      "pluginVersion": "11.4.0",
+      "targets": [
+        {
+          "alias": "Random Walk",
+          "columns": [],
+          "computed_columns": [],
+          "dataOverrides": [],
+          "datasource": {
+            "type": "yesoreyeram-infinity-datasource",
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
+          },
+          "filters": [],
+          "format": "as-is",
+          "global_query_id": "",
+          "json_options": {
+            "columnar": false
+          },
+          "parser": "backend",
+          "refId": "A",
+          "root_selector": "",
+          "source": "url",
+          "type": "json",
+          "uql": "parse-json",
+          "url": "http://localhost:4000/delay_req/under-attack",
+          "url_options": {
+            "data": "",
+            "method": "GET"
+          }
+        }
+      ],
+      "title": "TDA of Delay_request messages",
+      "transparent": true,
+      "type": "trend"
+    },
+    {
+      "datasource": {
+        "type": "yesoreyeram-infinity-datasource",
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
+      },
+      "description": "Ingress time deviation of Sync messages at each switch when comparing with master",
       "fieldConfig": {
         "defaults": {
           "color": {
@@ -675,7 +862,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "sequence ID"
+              "options": "sequence-id"
             },
             "properties": [
               {
@@ -689,9 +876,9 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 21
       },
-      "id": 5,
+      "id": 7,
       "options": {
         "legend": {
           "calcs": [],
@@ -703,34 +890,13 @@
           "mode": "single",
           "sort": "none"
         },
-        "xField": "sequence ID"
+        "xField": "sequence-id"
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.4.0",
       "targets": [
         {
           "alias": "Random Walk",
-          "columns": [
-            {
-              "selector": "sequence-id",
-              "text": "sequence ID",
-              "type": "number"
-            },
-            {
-              "selector": "switch-0.ingressTstamp-master",
-              "text": "",
-              "type": "number"
-            },
-            {
-              "selector": "switch-1.ingressTstamp-master",
-              "text": "",
-              "type": "number"
-            },
-            {
-              "selector": "switch-2.ingressTstamp-master",
-              "text": "",
-              "type": "number"
-            }
-          ],
+          "columns": [],
           "computed_columns": [],
           "dataOverrides": [],
           "datasource": {
@@ -749,14 +915,14 @@
           "source": "url",
           "type": "json",
           "uql": "parse-json",
-          "url": "http://localhost:4000/sync",
+          "url": "http://localhost:4000/sync/ingressTstamp-master",
           "url_options": {
             "data": "",
             "method": "GET"
           }
         }
       ],
-      "title": "Ingress Time variation of Sync messages",
+      "title": "Ingress Time Deviation of Sync messages",
       "type": "trend"
     },
     {
@@ -822,7 +988,7 @@
           {
             "matcher": {
               "id": "byName",
-              "options": "sequence ID"
+              "options": "sequence-id"
             },
             "properties": [
               {
@@ -836,9 +1002,9 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 21
       },
-      "id": 6,
+      "id": 8,
       "options": {
         "legend": {
           "calcs": [],
@@ -850,34 +1016,13 @@
           "mode": "single",
           "sort": "none"
         },
-        "xField": "sequence ID"
+        "xField": "sequence-id"
       },
-      "pluginVersion": "11.3.0",
+      "pluginVersion": "11.4.0",
       "targets": [
         {
           "alias": "Random Walk",
-          "columns": [
-            {
-              "selector": "sequence-id",
-              "text": "sequence ID",
-              "type": "number"
-            },
-            {
-              "selector": "switch-0.egressTstamp-master",
-              "text": "",
-              "type": "number"
-            },
-            {
-              "selector": "switch-1.egressTstamp-master",
-              "text": "",
-              "type": "number"
-            },
-            {
-              "selector": "switch-2.egressTstamp-master",
-              "text": "",
-              "type": "number"
-            }
-          ],
+          "columns": [],
           "computed_columns": [],
           "dataOverrides": [],
           "datasource": {
@@ -896,14 +1041,14 @@
           "source": "url",
           "type": "json",
           "uql": "parse-json",
-          "url": "http://localhost:4000/delay_req",
+          "url": "http://localhost:4000/delay_req/egressTstamp-master",
           "url_options": {
             "data": "",
             "method": "GET"
           }
         }
       ],
-      "title": "Egress time variation of Delay_request messages",
+      "title": "Egress time Deviation of Delay_request messages",
       "transparent": true,
       "type": "trend"
     }
@@ -937,6 +1082,6 @@
   "timezone": "browser",
   "title": "Monitor PTP messages",
   "uid": "aeawgko20jz0ge",
-  "version": 23,
+  "version": 11,
   "weekStart": ""
 }

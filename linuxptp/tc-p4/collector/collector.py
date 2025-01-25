@@ -134,6 +134,55 @@ def analyze_packet(packet):
             reports = parse_int_reports( rawPayload[0:tlvRawLen] )
             analyse_reports(ptp, reports)
 
+# threshold of IAT of each switch
+iatThresholds = dict()
+NB_SAMPLES_TO_LEARN = 20
+# delta to compare
+DELTA = {"sync" : 1000, "delay_req": 2000}
+def attack_detection( tag, elem ):
+    global iatThresholds
+
+    #for the first time
+    if tag not in iatThresholds:
+        threshold = dict()
+        threshold["count"] = 1
+        for s in elem["nodes"]:
+            node = elem["nodes"][s]
+            if "iat-master" not in node:
+                continue
+            threshold[s] = node["iat-master"]
+            iatThresholds[tag] = threshold
+        return
+
+    
+    threshold = iatThresholds[tag]
+    threshold["count"] += 1
+    
+    #wait for x benign samples
+    if threshold["count"] < NB_SAMPLES_TO_LEARN:
+        for s in elem["nodes"]:
+            node = elem["nodes"][s]
+            if "iat-master" not in node:
+                continue
+            val = node["iat-master"]
+            if val > threshold[s]: 
+                threshold[s] = val
+        return
+
+    if threshold["count"] == NB_SAMPLES_TO_LEARN:
+        print(f"\n=====start TDA monitoring on {tag}=======\n")
+
+    # detection
+    for s in elem["nodes"]:
+        node = elem["nodes"][s]
+        if "iat-master" not in node:
+            continue
+        val = node["iat-master"]
+        if val > threshold[s] + DELTA[tag]:
+            node["under-attack"] = 1
+
+
+
 lastElement = dict()
 def analyse_reports(ptp, reports):
     global lastElement
@@ -169,6 +218,7 @@ def analyse_reports(ptp, reports):
 
     elem = dict()
     elem["sequence-id"] = sequenceId
+    elem["nodes"] = dict()
 
     NS_SEC = 1000*1000*1000
     masterTime = (ptp.tsSeconds * NS_SEC + ptp.tsNanoSeconds)
@@ -176,7 +226,7 @@ def analyse_reports(ptp, reports):
     #IAT between 2 sync messages at the master side
     iatMaster =  masterTime - (lptp.tsSeconds * NS_SEC + lptp.tsNanoSeconds)
 
-    elem["master"] = {"iat": iatMaster, "ingressTstamp": masterTime, "egressTstamp": masterTime}
+    elem["nodes"]["master"] = {"iat": iatMaster, "ingressTstamp": masterTime, "egressTstamp": masterTime}
 
     # get delay of each switch
     for i in range(len(reports)):
@@ -203,15 +253,18 @@ def analyse_reports(ptp, reports):
             iat -= (report.correctionNs - lreport.correctionNs)
 
         #iat -= ptp.logMessageInterval
-        iat -= iatMaster
-        elem[ f"switch-{report.switchId}" ] =  {"iat": iat, 
+        elem["nodes"][ f"switch-{report.switchId}" ] =  {
+                "iat": iat,
+                "iat-master": iat - iatMaster, 
                 "ingressTstamp": report.ingressTstamp, 
                 "egressTstamp": report.egressTstamp,
                 "ingressTstamp-master": report.ingressTstamp - masterTime, 
                 "egressTstamp-master": report.egressTstamp - masterTime,
                 "delay": report.egressTstamp - report.ingressTstamp
         }
-
+    
+    attack_detection( tag, elem)
+    
     push_stat_to_http_server( tag, elem )
 
 # Lock to safely update the shared number
@@ -221,6 +274,7 @@ database = {}  # List to store historical bandwidth data points
 MAX_HISTORY_LENGTH = 20  # Maximum number of data points to store
 
 def push_stat_to_http_server( tag, elem ):
+
     with number_lock:
         # initialise an array to contain this tag for the first time
         if tag not in database:
@@ -242,13 +296,37 @@ class CustomHandler(BaseHTTPRequestHandler):
         global data_history
         
         # remove the first /
-        tag = self.path[1:]
-        
+        # format: tag/metric
+        paths = self.path.split("/")
+        tag = paths[1]
+
         json_data = None
         # Read the shared number safely
         with number_lock:
             if tag in database:
-                json_data = json.dumps( database[tag] )
+                data = database[tag]
+
+                #get detail of each metric of each node
+                # return a 2D array containing metric, e.g,:
+                # sequence-id, master, switch-1, switch-2, ...
+                #  seq1      , v1,     v2,       v3,       ...
+                if len(paths) > 2:
+                    metricName = paths[2]
+
+                    ret = [] 
+                    for elem in data:
+                        newE = dict()
+                        newE["sequence-id"] = elem["sequence-id"]
+                        for n in elem["nodes"]:
+                            node = elem["nodes"][n]
+                            if metricName in node:
+                                newE[n] = node[metricName]
+
+                        ret.append(newE)
+
+                    data = ret
+                    
+                json_data = json.dumps( data )
 
         if json_data == None:
             # Respond with 404 for unknown paths
@@ -285,8 +363,11 @@ if __name__ == "__main__":
     parser.add_argument("--pcap-file", default=None, help="Path to the pcap file to analyse")
     parser.add_argument("--ip",   default="127.0.0.1", help="IP of HTTP server to expose stats to Grafana")
     parser.add_argument("--port", default=4000, help="Port number of HTTP server to expose stats to Grafana")
+    parser.add_argument("--nb", default=50, help="First X samples to learn")
+
 
     args = parser.parse_args()
+    NB_SAMPLES_TO_LEARN = int(args.nb)
 
     try:
         http_server = start_http_server_thread( args.ip, args.port )
@@ -306,7 +387,8 @@ if __name__ == "__main__":
             http_server.join()
         else:
             print("Error: you need to provide either --nic or --pcap-file parameter")
-
+    except KeyboardInterrupt:
+        None
     except:
         raise
     finally:

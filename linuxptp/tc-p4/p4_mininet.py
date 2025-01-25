@@ -52,7 +52,7 @@ class P4Host(Host):
 
 class P4Switch(Switch):
     """P4 virtual switch"""
-    device_id = 0
+    device_id = 1
 
     def __init__(self, name, 
                  json_file = "tc.json",
@@ -135,8 +135,23 @@ class P4Switch(Switch):
         bmv2_exec = "simple_switch"
         if os.getenv("BMV2_SWITCH_EXE") is not None:
             bmv2_exec = os.getenv("BMV2_SWITCH_EXE")
-            
-        args = ["nice -n -10", bmv2_exec, self.json_file]
+
+
+        args = []
+        # set high priority
+        args.append("nice -n -10")
+        
+        #bind process on a fixed CPU core to avoid context switching
+        nb_core = multiprocessing.cpu_count()
+        core_index = self.device_id
+        core_index *= 2 #alocate 2 core for each switch
+        core_index %= nb_core #ensure the index must not bigger than nb of avail cores
+        args.append('taskset --cpu-list %d-%d' % (core_index, core_index+1))
+        
+        #BMv2 switch
+        args.append( bmv2_exec )
+        args.append( self.json_file )
+
         args.append("--device-id %d"%( self.device_id ))
         # print log to console which will be then redirected to file
         args.append("--log-console")
@@ -192,11 +207,7 @@ class P4Switch(Switch):
         #remember pid
         self.p4_pid = pid
         
-        #bind process on a fixed CPU core to avoid context switching
-        nb_core = multiprocessing.cpu_count()
-        core_index = self.device_id % nb_core
-        self.cmd('taskset -cp %d %d' % (core_index, pid))
-        
+
     def stop(self):
         "Terminate P4 switch."
         self.cmd('kill %d' % self.p4_pid)

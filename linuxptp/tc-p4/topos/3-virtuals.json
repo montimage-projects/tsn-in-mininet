@@ -12,7 +12,7 @@
     "switches": {
         "s1": { "config" : "configs/s1.txt", "commands": ["ip a"] },
         "s2": { "config" : "configs/s2.txt" },
-        "s3": { "config" : "configs/s3.txt", "commands": ["python collector/collector.py --nic s3-eth2"] }
+        "s3": { "config" : "configs/s3.txt", "_commands": ["python collector/collector.py --nic s3-eth2 > logs/collector.log 2>&1"] }
     },
     "links": [
         ["h1", "s1-p1"], ["s1-p2", "s2-p1"], ["s2-p2", "s3-p1"], ["s3-p2", "h2"] 
