@@ -17,6 +17,8 @@ class ExerciseTopo(Topo):
     def __init__(self, topo_file, log_dir, **opts):
         Topo.__init__(self, **opts)
         
+        self.popen_processes = []
+        
         with open(topo_file, 'r') as f:
             topo = json.load(f)
 
@@ -49,9 +51,8 @@ class ExerciseTopo(Topo):
         for link in host_links:
             host_name = link['node1']
             sw_name, sw_port = self.parse_switch_node(link['node2'])
-            host_ip = hosts[host_name]['ip']
-            host_mac = hosts[host_name]['mac']
-            self.addHost(host_name, inNamespace=True, ip=host_ip, mac=host_mac, cls=P4Host)
+            params = hosts[host_name]
+            self.addHost(host_name, inNamespace=True, cls=P4Host, **params)
             self.addLink(host_name, sw_name,
                          delay=link['latency'], bw=link['bandwidth'],
                          port2=sw_port)
@@ -102,6 +103,15 @@ class ExerciseTopo(Topo):
             links.append(link_dict)
         return links
 
+    def execute_command_on_node(self, host, command):
+        info(f"  {host.name} is executing: {command}\n")
+        proc = host.popen("bash", "-c", command)
+        # remember its handle so that we can stop it when existing
+        self.popen_processes.append( proc )
+
+    def stop_popen_processes(self):
+        for proc in self.popen_processes:
+            proc.terminate()
 
     def program_switches(self, net):
         """ 
@@ -112,7 +122,7 @@ class ExerciseTopo(Topo):
             sw = net.get(sw_name)
             if "commands" in sw_dict:
                 for cmd in sw_dict["commands"]:
-                    sw.cmd(cmd)
+                    self.execute_command_on_node(sw, cmd)
 
     def program_hosts(self, net):
         """ 
@@ -123,11 +133,12 @@ class ExerciseTopo(Topo):
             h = net.get(host_name)
             if "commands" in host_info:
                 for cmd in host_info["commands"]:
-                    h.cmd(cmd)
+                    self.execute_command_on_node(h, cmd)
 
 
 if __name__ == '__main__':
     setLogLevel( 'debug' )
+    setLogLevel( 'info' )
 
         # Set up command-line argument parsing
     parser = argparse.ArgumentParser(description="Emulate a PTP time synchronsiation network using mininet.")
@@ -154,6 +165,6 @@ if __name__ == '__main__':
         info('sleep 180 sec, then exit\n')
         time.sleep(180)
     
-    
+    topo.stop_popen_processes()
     net.stop()
     info( 'bye\n' )

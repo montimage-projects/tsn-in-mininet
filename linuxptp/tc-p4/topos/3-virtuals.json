@@ -3,16 +3,16 @@
         "h1": {"ip": "10.0.1.1/24", "mac": "08:00:00:00:01:11",
                "commands":["route add default gw 10.0.1.10 dev eth0",
                            "arp -i eth0 -s 10.0.1.10 08:00:00:00:01:00",
-                           "(ptp4l -i eth0 -f ../configs/master.cfg -m 2>&1) > logs/ptp4l.master.log &"]},
+                           "ptp4l -i eth0 -f ../configs/master.cfg -m > logs/ptp4l.master.log 2>&1"]},
         "h2": {"ip": "10.0.2.2/24", "mac": "08:00:00:00:02:22",
                "commands":["route add default gw 10.0.2.20 dev eth0",
                            "arp -i eth0 -s 10.0.2.20 08:00:00:00:02:00",
-                           "(ptp4l -i eth0 -f ../configs/slave.cfg -m 2>&1) > logs/ptp4l.slave.log &"]}
+                           "ptp4l -i eth0 -f ../configs/slave.cfg -m 2>&1 > logs/ptp4l.slave.log"]}
     },
     "switches": {
         "s1": { "config" : "configs/s1.txt", "commands": ["ip a"] },
         "s2": { "config" : "configs/s2.txt" },
-        "s3": { "config" : "configs/s3.txt" }
+        "s3": { "config" : "configs/s3.txt", "commands": ["python collector/collector.py --nic s3-eth2"] }
     },
     "links": [
         ["h1", "s1-p1"], ["s1-p2", "s2-p1"], ["s2-p2", "s3-p1"], ["s3-p2", "h2"] 

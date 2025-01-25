@@ -90,7 +90,7 @@ class P4Switch(Switch):
             command files as input.
         """
 
-        info('Configuring P4 switch %s with file %s\n' % (self.name, self.config_file))
+        debug('Configuring P4 switch %s with file %s\n' % (self.name, config_file))
         with open(config_file, 'r') as fin:
             cli_outfile = '%s/p4s.%s_cli_output.log'%(self.log_dir, self.name)
             with open(cli_outfile, 'w+') as fout:
@@ -99,7 +99,7 @@ class P4Switch(Switch):
                     stdin=fin, stdout=fout)
 
     def config_intfs(self ):
-        info("**Configuring ports for switch {}.\n".format(self.name))
+        debug("**Configuring ports for switch {}.\n".format(self.name))
         #for each connected port
         for port, intf in self.intfs.items():
             # ignore localhost
@@ -128,7 +128,7 @@ class P4Switch(Switch):
         Configure the switch as a transparent clock
         """
         
-        info("**Configuring transparent clock for switch {}.\n".format(self.name))
+        debug("**Starting transparent clock for switch {}.\n".format(self.name))
 
         self.config_intfs()
         
@@ -155,7 +155,7 @@ class P4Switch(Switch):
         for port, intf in self.intfs.items():
             # ignore localhost
             if intf.name == "lo":
-                info("Ignore localhost\n")
+                debug("Ignore localhost\n")
                 continue
             # append to set of ports
             if port not in self.override_ports:

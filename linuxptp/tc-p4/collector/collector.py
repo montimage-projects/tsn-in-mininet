@@ -188,10 +188,18 @@ def analyse_reports(ptp, reports):
         #  => we need to base on the moment it is sent out
         if ptp.messageType == PTP_MSG_TYPE_DELAY_RESPONSE:
             iat = report.egressTstamp - lreport.egressTstamp
+            
+            # delay_req packet towards: switch ----> master
+            # => the extra delay will be introduced after the packet went out of the switch
+            # => we need to add this delay when comparing with IAT at the master
             iat += (report.correctionNs - lreport.correctionNs)
         else:
             #different between 2 consecutive messages
             iat  = report.ingressTstamp - lreport.ingressTstamp
+            
+            # sync packet towards:   master ----> switch
+            # => when packet arrived at the switch, it experienced extra delay
+            # => we need to minus this delay when comparing with IAT at the master
             iat -= (report.correctionNs - lreport.correctionNs)
 
         #iat -= ptp.logMessageInterval
