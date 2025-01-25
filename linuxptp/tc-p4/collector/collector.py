@@ -171,6 +171,12 @@ def attack_detection( tag, elem ):
 
     if threshold["count"] == NB_SAMPLES_TO_LEARN:
         print(f"\n=====start TDA monitoring on {tag}=======\n")
+        #notify to GUI
+        for s in elem["nodes"]:
+            node = elem["nodes"][s]
+            if "iat-master" not in node:
+                continue
+            node["under-attack"] = 0
 
     # detection
     for s in elem["nodes"]:
