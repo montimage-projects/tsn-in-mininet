@@ -138,7 +138,7 @@ def analyze_packet(packet):
 iatThresholds = dict()
 NB_SAMPLES_TO_LEARN = 20
 # delta to compare
-DELTA = {"sync" : 1000, "delay_req": 2000}
+DELTA = {"sync" : 100000, "delay_req": 100000}
 def attack_detection( tag, elem ):
     global iatThresholds
 
@@ -369,11 +369,14 @@ if __name__ == "__main__":
     parser.add_argument("--pcap-file", default=None, help="Path to the pcap file to analyse")
     parser.add_argument("--ip",   default="127.0.0.1", help="IP of HTTP server to expose stats to Grafana")
     parser.add_argument("--port", default=4000, help="Port number of HTTP server to expose stats to Grafana")
-    parser.add_argument("--nb", default=50, help="First X samples to learn")
+    parser.add_argument("--nb-learning-samples", default=50, help="First X samples to learn")
+    parser.add_argument("--sigma", default=15000, help="Sensitive detection sigma parameter")
 
 
     args = parser.parse_args()
-    NB_SAMPLES_TO_LEARN = int(args.nb)
+    NB_SAMPLES_TO_LEARN = int(args.nb_learning_samples)
+
+    DELTA = {"sync" : int(args.sigma), "delay_req": int(args.sigma)}
 
     try:
         http_server = start_http_server_thread( args.ip, args.port )
