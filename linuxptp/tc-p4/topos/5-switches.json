@@ -10,12 +10,7 @@
         "s2": { "config" : "configs/s2.txt"},
         "s3": { "config" : "configs/s2.txt"},
         "s4": { "config" : "configs/s2.txt"},
-        "s5": { "config" : "configs/s2.txt"},
-        "s6": { "config" : "configs/s2.txt"},
-        "s7": { "config" : "configs/s2.txt"},
-        "s8": { "config" : "configs/s2.txt"},
-        "s9": { "config" : "configs/s2.txt"},
-        "s10": { "config" : "configs/s3.txt", "override_ports":{"2": "enp0s31f6"},
+        "s5": { "config" : "configs/s3.txt", "override_ports":{"2": "enp0s31f6"},
                  "_commands": ["python collector/collector.py --nic s10-eth1"] }
     },
     "links": [
@@ -23,11 +18,6 @@
         ["s1-p2", "s2-p1"], 
         ["s2-p2", "s3-p1"],
         ["s3-p2", "s4-p1"], 
-        ["s4-p2", "s5-p1"],
-        ["s5-p2", "s6-p1"], 
-        ["s6-p2", "s7-p1"],
-        ["s7-p2", "s8-p1"], 
-        ["s8-p2", "s9-p1"],
-        ["s9-p2", "s10-p1"]
+        ["s4-p2", "s5-p1"]
     ]
 }

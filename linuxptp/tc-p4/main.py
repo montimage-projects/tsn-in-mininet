@@ -169,8 +169,8 @@ if __name__ == '__main__':
         if args.enter_cli:
             CLI(net)
         else:
-            info('sleep 180 sec, then exit\n')
-            time.sleep(180)
+            info('sleep 330 sec, then exit\n')
+            time.sleep(330)
     except Exception as e:
         # Handles any other exception
         print(f"An unexpected error occurred: {e}")

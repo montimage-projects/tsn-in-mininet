@@ -15,7 +15,17 @@
         "s7": { "config" : "configs/s2.txt"},
         "s8": { "config" : "configs/s2.txt"},
         "s9": { "config" : "configs/s2.txt"},
-        "s10": { "config" : "configs/s3.txt", "override_ports":{"2": "enp0s31f6"},
+        "s10": { "config" : "configs/s1.txt"},
+        "s11": { "config" : "configs/s1.txt"},
+        "s12": { "config" : "configs/s2.txt"},
+        "s13": { "config" : "configs/s2.txt"},
+        "s14": { "config" : "configs/s2.txt"},
+        "s15": { "config" : "configs/s2.txt"},
+        "s16": { "config" : "configs/s2.txt"},
+        "s17": { "config" : "configs/s2.txt"},
+        "s18": { "config" : "configs/s2.txt"},
+        "s19": { "config" : "configs/s2.txt"},
+        "s20": { "config" : "configs/s3.txt", "override_ports":{"2": "enp0s31f6"},
                  "_commands": ["python collector/collector.py --nic s10-eth1"] }
     },
     "links": [
@@ -28,6 +38,16 @@
         ["s6-p2", "s7-p1"],
         ["s7-p2", "s8-p1"], 
         ["s8-p2", "s9-p1"],
-        ["s9-p2", "s10-p1"]
+        ["s9-p2", "s10-p1"],
+        ["s10-p2", "s11-p1"], 
+        ["s11-p2", "s12-p1"], 
+        ["s12-p2", "s13-p1"],
+        ["s13-p2", "s14-p1"], 
+        ["s14-p2", "s15-p1"],
+        ["s15-p2", "s16-p1"], 
+        ["s16-p2", "s17-p1"],
+        ["s17-p2", "s18-p1"], 
+        ["s18-p2", "s19-p1"],
+        ["s19-p2", "s20-p1"]
     ]
 }
