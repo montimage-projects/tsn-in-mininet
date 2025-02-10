@@ -144,9 +144,19 @@ def line_plot_metrics(data):
 def flatten( arr ):
     ret = []
     for val in arr:
+        val = val[30:] # exclude the "calibration period"
         ret += val
     return ret
 
+
+log_file_labels = {
+    "1-switch"   : "1 TC", 
+    "2-switches" : "2 TCs", 
+    "5-switches" : "5 TCs", 
+    "10-switches": "10 TCs", 
+    "20-switches": "20 TCs"
+    }
+    
 def box_plot_metrics(data):
     """
     Plots the master offset, frequency offset, and path delay metrics along with boxplots.
@@ -163,12 +173,13 @@ def box_plot_metrics(data):
         arr    = []
         # each log
         for name in data:
-            labels.append( name )
+            labels.append( log_file_labels[name] )
             val = data[name][metric]
+            
             val = flatten( val )
             arr.append( val )
         # Boxplot for Master Offset (Vertical)
-        box = plt.boxplot(arr, vert=True, patch_artist=True, labels=labels, boxprops=dict(color='black', facecolor='black', alpha=0.6), medianprops=dict(color='black'))
+        box = plt.boxplot(arr, vert=True, patch_artist=True, labels=labels, boxprops=dict(color='black', facecolor='grey', alpha=0.9), medianprops=dict(color='black'))
         #plt.title("Master Offset Distribution")
         plt.ylabel( y_labels[metric] )
 
