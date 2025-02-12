@@ -27,7 +27,7 @@ draw:
 	mkdir -p logs
 	
 	ssh pi@10.42.0.110 "sudo killall ptp4l" || true
-	ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 330 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+	ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
 	
 	sudo python3 main.py --topo-file $<
 	

@@ -1,4 +1,41 @@
 {
+  "__inputs": [
+    {
+      "name": "DS_YESOREYERAM-INFINITY-DATASOURCE",
+      "label": "yesoreyeram-infinity-datasource",
+      "description": "",
+      "type": "datasource",
+      "pluginId": "yesoreyeram-infinity-datasource",
+      "pluginName": "Infinity"
+    }
+  ],
+  "__elements": {},
+  "__requires": [
+    {
+      "type": "panel",
+      "id": "barchart",
+      "name": "Bar chart",
+      "version": ""
+    },
+    {
+      "type": "grafana",
+      "id": "grafana",
+      "name": "Grafana",
+      "version": "11.4.0"
+    },
+    {
+      "type": "panel",
+      "id": "trend",
+      "name": "Trend",
+      "version": ""
+    },
+    {
+      "type": "datasource",
+      "id": "yesoreyeram-infinity-datasource",
+      "name": "Infinity",
+      "version": "2.12.2"
+    }
+  ],
   "annotations": {
     "list": [
       {
@@ -18,13 +55,13 @@
   "editable": true,
   "fiscalYearStartMonth": 0,
   "graphTooltip": 0,
-  "id": 1,
+  "id": null,
   "links": [],
   "panels": [
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "feazosf7l6874a"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Interval time between two consecutive Sync messages at master and each switches",
       "fieldConfig": {
@@ -82,7 +119,7 @@
         "overrides": []
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
         "x": 0,
         "y": 0
@@ -110,7 +147,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "feazosf7l6874a"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -137,7 +174,7 @@
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "feazosf7l6874a"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Interval arrival time between two consecutive Delay_request messages at Master and each switch",
       "fieldConfig": {
@@ -211,7 +248,7 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
         "x": 12,
         "y": 0
@@ -239,7 +276,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "feazosf7l6874a"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -261,13 +298,12 @@
         }
       ],
       "title": "Interval arrival time of Delay_request messages",
-      "transparent": true,
       "type": "trend"
     },
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "feazosf7l6874a"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Difference of IATs of Sync messages at each switch when comparing with IAT at master",
       "fieldConfig": {
@@ -338,10 +374,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
         "x": 0,
-        "y": 8
+        "y": 7
       },
       "id": 3,
       "options": {
@@ -366,7 +402,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "feazosf7l6874a"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -393,7 +429,7 @@
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "feazosf7l6874a"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Difference of IATs of Delay_request messages at each switch when comparing with its IAT at master",
       "fieldConfig": {
@@ -464,10 +500,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
         "x": 12,
-        "y": 8
+        "y": 7
       },
       "id": 4,
       "options": {
@@ -492,7 +528,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "feazosf7l6874a"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -514,13 +550,12 @@
         }
       ],
       "title": "IAT Deviation of Delay_request messages  wrt. Master",
-      "transparent": true,
       "type": "trend"
     },
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "feazosf7l6874a"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Time delay attack detection on Sync messages",
       "fieldConfig": {
@@ -579,7 +614,7 @@
         "h": 5,
         "w": 12,
         "x": 0,
-        "y": 16
+        "y": 14
       },
       "id": 5,
       "options": {
@@ -613,7 +648,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "feazosf7l6874a"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -640,7 +675,7 @@
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "feazosf7l6874a"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Time delay attack detection of Delay_request messages at each switch",
       "fieldConfig": {
@@ -688,7 +723,7 @@
         "h": 5,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 14
       },
       "id": 6,
       "options": {
@@ -722,7 +757,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "feazosf7l6874a"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -744,13 +779,12 @@
         }
       ],
       "title": "TDA of Delay_request messages",
-      "transparent": true,
       "type": "barchart"
     },
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "feazosf7l6874a"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Ingress time deviation of Sync messages at each switch when comparing with master",
       "fieldConfig": {
@@ -821,10 +855,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
         "x": 0,
-        "y": 21
+        "y": 19
       },
       "id": 7,
       "options": {
@@ -849,7 +883,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "feazosf7l6874a"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -876,7 +910,7 @@
     {
       "datasource": {
         "type": "yesoreyeram-infinity-datasource",
-        "uid": "feazosf7l6874a"
+        "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
       },
       "description": "Egress time of Delay_request messages at each switch when comparing with master",
       "fieldConfig": {
@@ -947,10 +981,10 @@
         ]
       },
       "gridPos": {
-        "h": 8,
+        "h": 7,
         "w": 12,
         "x": 12,
-        "y": 21
+        "y": 19
       },
       "id": 8,
       "options": {
@@ -975,7 +1009,7 @@
           "dataOverrides": [],
           "datasource": {
             "type": "yesoreyeram-infinity-datasource",
-            "uid": "feazosf7l6874a"
+            "uid": "${DS_YESOREYERAM-INFINITY-DATASOURCE}"
           },
           "filters": [],
           "format": "as-is",
@@ -1001,7 +1035,6 @@
       "type": "trend"
     }
   ],
-  "preload": false,
   "refresh": "1s",
   "schemaVersion": 40,
   "tags": [],
@@ -1031,6 +1064,6 @@
   "timezone": "browser",
   "title": "Monitor PTP messages",
   "uid": "aeawgko20jz0ge",
-  "version": 13,
+  "version": 15,
   "weekStart": ""
 }

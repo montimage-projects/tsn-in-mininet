@@ -164,7 +164,6 @@ if __name__ == '__main__':
         topo.program_switches(net)
         topo.program_hosts(net)
 
-
         time.sleep(1)
         if args.enter_cli:
             CLI(net)
