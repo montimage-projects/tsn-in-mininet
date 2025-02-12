@@ -165,8 +165,8 @@ def attack_detection( tag, elem ):
             if "iat-master" not in node:
                 continue
             val = node["iat-master"]
-            if val > threshold[s]: 
-                threshold[s] = val
+            if abs(val) > abs(threshold[s]): 
+                threshold[s] = abs(val)
         return
 
     if threshold["count"] == NB_SAMPLES_TO_LEARN:
@@ -184,7 +184,7 @@ def attack_detection( tag, elem ):
         if "iat-master" not in node:
             continue
         val = node["iat-master"]
-        if val > threshold[s] + DELTA[tag]:
+        if abs(val) > abs(threshold[s]) + DELTA[tag]:
             node["under-attack"] = 1
 
 
@@ -221,7 +221,8 @@ def analyse_reports(ptp, reports):
     #print("-----")
     #print(lreports)
     #print(reports)
-
+    #if tag == "sync":
+    #    print(f"{sequenceId}   -  {ptp.tsNanoSeconds}")
     elem = dict()
     elem["sequence-id"] = sequenceId
     elem["nodes"] = dict()

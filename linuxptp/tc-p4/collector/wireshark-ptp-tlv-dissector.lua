@@ -1,3 +1,5 @@
+-- Copy this file to ~/.local/lib/wireshark/plugins/ 
+--
 -- Define the Lua dissector
 local ptp_tlv_dissector = Proto("CustomPTPTLV", "PTP INT")
 
