@@ -27,6 +27,8 @@ draw:
 	#rm -rf logs
 	mkdir -p logs
 	
+	# ensure time sync is disable
+	ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
 	ssh pi@10.42.0.110 "sudo killall ptp4l" || true
 	ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
 	
@@ -45,7 +47,8 @@ test-1-switch: topos/1-switch.pdf
 test-10-switches: tc.json
 	#rm -rf logs
 	mkdir -p logs
-	
+	# ensure time sync is disable
+	ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
 	ssh pi@10.42.0.110 "sudo killall ptp4l" || true
 	ssh pi@10.42.0.110 "nohup bash -c 'sudo /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
 	

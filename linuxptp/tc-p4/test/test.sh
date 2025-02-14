@@ -24,4 +24,4 @@ do
 	pwd
 done
 
-python3 plot-all-test.py
+python3 plot-all-tests.py

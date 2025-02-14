@@ -214,7 +214,7 @@ if __name__ == "__main__":
 
     # Plot the metrics
     if len(data):
-        #line_plot_metrics(data)
+        line_plot_metrics(data)
         box_plot_metrics(data)
     else:
         print("No valid data found in the log file.")
