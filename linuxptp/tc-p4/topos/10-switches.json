@@ -16,7 +16,7 @@
         "s8": { "config" : "configs/s2.txt"},
         "s9": { "config" : "configs/s2.txt"},
         "s10": { "config" : "configs/s3.txt", "override_ports":{"2": "enp0s31f6"},
-                 "_commands": ["python collector/collector.py --nic s10-eth1"] }
+                 "_commands": ["python collector/collector.py --nic s10-eth1 2>&1 > logs/collector.log"] }
     },
     "links": [
         ["h1", "s1-p1"], 

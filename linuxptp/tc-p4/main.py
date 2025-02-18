@@ -108,6 +108,7 @@ class ExerciseTopo(Topo):
 
     def execute_command_on_node(self, host, command):
         info(f"  {host.name} is executing: {command}\n")
+        #proc = host.popen('bash', '-c', 'exec ' + command)
         proc = host.popen(command)
         # remember its handle so that we can stop it when existing
         self.popen_processes.append( proc )

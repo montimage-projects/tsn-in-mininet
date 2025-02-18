@@ -158,8 +158,8 @@ class P4Switch(Switch):
         ## log level
         ## supported values  'trace', 'debug', 'info', 'warn', 'error', off';
         ## default is 'trace'
-        #args.append("--log-level debug")
-        args.append("--log-level info") 
+        args.append("--log-level debug")
+        #args.append("--log-level info") 
         # dump traffic to pcap files
         args.append("--pcap %s"%( mkdir("./pcaps") ))
         # TCP port to config the switch
@@ -187,7 +187,7 @@ class P4Switch(Switch):
         pid = None
         with tempfile.NamedTemporaryFile() as f:
             # self.cmd(' '.join(args) + ' > /dev/null 2>&1 &')
-            self.cmd(' '.join(args) + ' >' + logfile + ' 2>&1 & echo $! >> ' + f.name)
+            self.cmd(' '.join(args) + ' > ' + logfile + ' 2>&1 & echo $! >> ' + f.name)
             pid = int(f.read())
 
         if not self.check_switch_started(pid):
