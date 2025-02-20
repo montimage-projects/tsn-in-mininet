@@ -128,7 +128,7 @@ def line_plot_metrics(data):
             #plt.yscale('log')  # Set Y-axis to logarithmic scale (base 10)
 
             for arr in obj[metric]:
-                plt.plot(range(0, len(arr)), arr, marker='o', color="black", markeredgewidth=0, alpha=0.5, markersize=5, linestyle='None')
+                plt.plot(range(0, len(arr)), arr, marker='o', color="black", markeredgewidth=0, alpha=0.5, markersize=3, linestyle='None')
             
             # a line to represent average
             y_smooth = moving_average(obj[metric], window_size=10)

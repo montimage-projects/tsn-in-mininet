@@ -1,0 +1,951 @@
+Wed Feb 19 21:10:17 CET 2025
+test 1
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4
+sudo mn -c
+rm tc.p4.p4info.txt tc.json topos/*.pdf
+sudo rm -rf pcaps logs __pycache__
+p4c-bm2-ss --p4v 16 --p4runtime-files tc.p4.p4info.txt --emit-externs -o tc.json tc.p4
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/1-switch.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/1-switch.json.slave.log
+python3 ../plot.py --log-file topos/1-switch.json.slave.log --output-file topos/1-switch.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/2-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/2-switches.json.slave.log
+python3 ../plot.py --log-file topos/2-switches.json.slave.log --output-file topos/2-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/5-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/5-switches.json.slave.log
+python3 ../plot.py --log-file topos/5-switches.json.slave.log --output-file topos/5-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/10-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/10-switches.json.slave.log
+python3 ../plot.py --log-file topos/10-switches.json.slave.log --output-file topos/10-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/20-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/20-switches.json.slave.log
+python3 ../plot.py --log-file topos/20-switches.json.slave.log --output-file topos/20-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+Wed Feb 19 21:39:21 CET 2025
+sleep 10 seconds
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4/test
+Wed Feb 19 21:39:32 CET 2025
+test 2
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4
+sudo mn -c
+rm tc.p4.p4info.txt tc.json topos/*.pdf
+sudo rm -rf pcaps logs __pycache__
+p4c-bm2-ss --p4v 16 --p4runtime-files tc.p4.p4info.txt --emit-externs -o tc.json tc.p4
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/1-switch.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/1-switch.json.slave.log
+python3 ../plot.py --log-file topos/1-switch.json.slave.log --output-file topos/1-switch.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/2-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/2-switches.json.slave.log
+python3 ../plot.py --log-file topos/2-switches.json.slave.log --output-file topos/2-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/5-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/5-switches.json.slave.log
+python3 ../plot.py --log-file topos/5-switches.json.slave.log --output-file topos/5-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/10-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/10-switches.json.slave.log
+python3 ../plot.py --log-file topos/10-switches.json.slave.log --output-file topos/10-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/20-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/20-switches.json.slave.log
+python3 ../plot.py --log-file topos/20-switches.json.slave.log --output-file topos/20-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+Wed Feb 19 22:08:37 CET 2025
+sleep 10 seconds
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4/test
+Wed Feb 19 22:08:47 CET 2025
+test 3
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4
+sudo mn -c
+rm tc.p4.p4info.txt tc.json topos/*.pdf
+sudo rm -rf pcaps logs __pycache__
+p4c-bm2-ss --p4v 16 --p4runtime-files tc.p4.p4info.txt --emit-externs -o tc.json tc.p4
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/1-switch.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/1-switch.json.slave.log
+python3 ../plot.py --log-file topos/1-switch.json.slave.log --output-file topos/1-switch.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/2-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/2-switches.json.slave.log
+python3 ../plot.py --log-file topos/2-switches.json.slave.log --output-file topos/2-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/5-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/5-switches.json.slave.log
+python3 ../plot.py --log-file topos/5-switches.json.slave.log --output-file topos/5-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/10-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/10-switches.json.slave.log
+python3 ../plot.py --log-file topos/10-switches.json.slave.log --output-file topos/10-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/20-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/20-switches.json.slave.log
+python3 ../plot.py --log-file topos/20-switches.json.slave.log --output-file topos/20-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+Wed Feb 19 22:37:53 CET 2025
+sleep 10 seconds
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4/test
+Wed Feb 19 22:38:03 CET 2025
+test 4
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4
+sudo mn -c
+rm tc.p4.p4info.txt tc.json topos/*.pdf
+sudo rm -rf pcaps logs __pycache__
+p4c-bm2-ss --p4v 16 --p4runtime-files tc.p4.p4info.txt --emit-externs -o tc.json tc.p4
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/1-switch.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/1-switch.json.slave.log
+python3 ../plot.py --log-file topos/1-switch.json.slave.log --output-file topos/1-switch.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/2-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/2-switches.json.slave.log
+python3 ../plot.py --log-file topos/2-switches.json.slave.log --output-file topos/2-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/5-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/5-switches.json.slave.log
+python3 ../plot.py --log-file topos/5-switches.json.slave.log --output-file topos/5-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/10-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/10-switches.json.slave.log
+python3 ../plot.py --log-file topos/10-switches.json.slave.log --output-file topos/10-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/20-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/20-switches.json.slave.log
+python3 ../plot.py --log-file topos/20-switches.json.slave.log --output-file topos/20-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+Wed Feb 19 23:07:07 CET 2025
+sleep 10 seconds
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4/test
+Wed Feb 19 23:07:17 CET 2025
+test 5
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4
+sudo mn -c
+rm tc.p4.p4info.txt tc.json topos/*.pdf
+sudo rm -rf pcaps logs __pycache__
+p4c-bm2-ss --p4v 16 --p4runtime-files tc.p4.p4info.txt --emit-externs -o tc.json tc.p4
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/1-switch.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/1-switch.json.slave.log
+python3 ../plot.py --log-file topos/1-switch.json.slave.log --output-file topos/1-switch.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/2-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/2-switches.json.slave.log
+python3 ../plot.py --log-file topos/2-switches.json.slave.log --output-file topos/2-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/5-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/5-switches.json.slave.log
+python3 ../plot.py --log-file topos/5-switches.json.slave.log --output-file topos/5-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/10-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/10-switches.json.slave.log
+python3 ../plot.py --log-file topos/10-switches.json.slave.log --output-file topos/10-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/20-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/20-switches.json.slave.log
+python3 ../plot.py --log-file topos/20-switches.json.slave.log --output-file topos/20-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+Wed Feb 19 23:36:21 CET 2025
+sleep 10 seconds
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4/test
+Wed Feb 19 23:36:31 CET 2025
+test 6
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4
+sudo mn -c
+rm tc.p4.p4info.txt tc.json topos/*.pdf
+sudo rm -rf pcaps logs __pycache__
+p4c-bm2-ss --p4v 16 --p4runtime-files tc.p4.p4info.txt --emit-externs -o tc.json tc.p4
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/1-switch.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/1-switch.json.slave.log
+python3 ../plot.py --log-file topos/1-switch.json.slave.log --output-file topos/1-switch.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/2-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/2-switches.json.slave.log
+python3 ../plot.py --log-file topos/2-switches.json.slave.log --output-file topos/2-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/5-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/5-switches.json.slave.log
+python3 ../plot.py --log-file topos/5-switches.json.slave.log --output-file topos/5-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/10-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/10-switches.json.slave.log
+python3 ../plot.py --log-file topos/10-switches.json.slave.log --output-file topos/10-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/20-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/20-switches.json.slave.log
+python3 ../plot.py --log-file topos/20-switches.json.slave.log --output-file topos/20-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+Thu Feb 20 00:05:34 CET 2025
+sleep 10 seconds
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4/test
+Thu Feb 20 00:05:44 CET 2025
+test 7
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4
+sudo mn -c
+rm tc.p4.p4info.txt tc.json topos/*.pdf
+sudo rm -rf pcaps logs __pycache__
+p4c-bm2-ss --p4v 16 --p4runtime-files tc.p4.p4info.txt --emit-externs -o tc.json tc.p4
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/1-switch.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/1-switch.json.slave.log
+python3 ../plot.py --log-file topos/1-switch.json.slave.log --output-file topos/1-switch.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/2-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/2-switches.json.slave.log
+python3 ../plot.py --log-file topos/2-switches.json.slave.log --output-file topos/2-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/5-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/5-switches.json.slave.log
+python3 ../plot.py --log-file topos/5-switches.json.slave.log --output-file topos/5-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/10-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/10-switches.json.slave.log
+python3 ../plot.py --log-file topos/10-switches.json.slave.log --output-file topos/10-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/20-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/20-switches.json.slave.log
+python3 ../plot.py --log-file topos/20-switches.json.slave.log --output-file topos/20-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+Thu Feb 20 00:34:54 CET 2025
+sleep 10 seconds
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4/test
+Thu Feb 20 00:35:04 CET 2025
+test 8
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4
+sudo mn -c
+rm tc.p4.p4info.txt tc.json topos/*.pdf
+sudo rm -rf pcaps logs __pycache__
+p4c-bm2-ss --p4v 16 --p4runtime-files tc.p4.p4info.txt --emit-externs -o tc.json tc.p4
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/1-switch.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/1-switch.json.slave.log
+python3 ../plot.py --log-file topos/1-switch.json.slave.log --output-file topos/1-switch.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/2-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/2-switches.json.slave.log
+python3 ../plot.py --log-file topos/2-switches.json.slave.log --output-file topos/2-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/5-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/5-switches.json.slave.log
+python3 ../plot.py --log-file topos/5-switches.json.slave.log --output-file topos/5-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/10-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/10-switches.json.slave.log
+python3 ../plot.py --log-file topos/10-switches.json.slave.log --output-file topos/10-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/20-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/20-switches.json.slave.log
+python3 ../plot.py --log-file topos/20-switches.json.slave.log --output-file topos/20-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+Thu Feb 20 01:04:09 CET 2025
+sleep 10 seconds
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4/test
+Thu Feb 20 01:04:19 CET 2025
+test 9
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4
+sudo mn -c
+rm tc.p4.p4info.txt tc.json topos/*.pdf
+sudo rm -rf pcaps logs __pycache__
+p4c-bm2-ss --p4v 16 --p4runtime-files tc.p4.p4info.txt --emit-externs -o tc.json tc.p4
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/1-switch.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/1-switch.json.slave.log
+python3 ../plot.py --log-file topos/1-switch.json.slave.log --output-file topos/1-switch.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/2-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/2-switches.json.slave.log
+python3 ../plot.py --log-file topos/2-switches.json.slave.log --output-file topos/2-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/5-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/5-switches.json.slave.log
+python3 ../plot.py --log-file topos/5-switches.json.slave.log --output-file topos/5-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/10-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/10-switches.json.slave.log
+python3 ../plot.py --log-file topos/10-switches.json.slave.log --output-file topos/10-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/20-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/20-switches.json.slave.log
+python3 ../plot.py --log-file topos/20-switches.json.slave.log --output-file topos/20-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+Thu Feb 20 01:33:30 CET 2025
+sleep 10 seconds
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4/test
+Thu Feb 20 01:33:40 CET 2025
+test 10
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4
+sudo mn -c
+rm tc.p4.p4info.txt tc.json topos/*.pdf
+sudo rm -rf pcaps logs __pycache__
+p4c-bm2-ss --p4v 16 --p4runtime-files tc.p4.p4info.txt --emit-externs -o tc.json tc.p4
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/1-switch.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/1-switch.json.slave.log
+python3 ../plot.py --log-file topos/1-switch.json.slave.log --output-file topos/1-switch.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/2-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/2-switches.json.slave.log
+python3 ../plot.py --log-file topos/2-switches.json.slave.log --output-file topos/2-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/5-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/5-switches.json.slave.log
+python3 ../plot.py --log-file topos/5-switches.json.slave.log --output-file topos/5-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/10-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/10-switches.json.slave.log
+python3 ../plot.py --log-file topos/10-switches.json.slave.log --output-file topos/10-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+#rm -rf logs
+mkdir -p logs
+# ensure time sync is disable
+ssh pi@10.42.0.110 "sudo timedatectl set-ntp 0" || true
+ssh pi@10.42.0.110 "sudo killall ptp4l" || true
+ssh pi@10.42.0.110 "nohup bash -c 'sudo timeout -- 350 /usr/local/sbin/ptp4l -i enxb827ebcf092b -f /home/pi/configs/slave.cfg' > /tmp/ptp.slave.txt 2>&1 &"
+sudo python3 main.py --topo-file topos/20-switches.json
+scp pi@10.42.0.110:/tmp/ptp.slave.txt topos/20-switches.json.slave.log
+python3 ../plot.py --log-file topos/20-switches.json.slave.log --output-file topos/20-switches.pdf
+cd topos && python3 plot-all.py
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing 1-switch
+parsing 2-switches
+parsing 5-switches
+parsing 10-switches
+parsing 20-switches
+Thu Feb 20 02:02:44 CET 2025
+sleep 10 seconds
+/home/montimage/hn/tsn-in-mininet/linuxptp/tc-p4/test
+['1-switch', '2-switches', '5-switches', '10-switches', '20-switches']
+parsing ./topos-1/1-switch.json.slave.log
+parsing ./topos-2/1-switch.json.slave.log
+parsing ./topos-3/1-switch.json.slave.log
+parsing ./topos-4/1-switch.json.slave.log
+parsing ./topos-5/1-switch.json.slave.log
+parsing ./topos-6/1-switch.json.slave.log
+parsing ./topos-7/1-switch.json.slave.log
+parsing ./topos-8/1-switch.json.slave.log
+parsing ./topos-9/1-switch.json.slave.log
+parsing ./topos-10/1-switch.json.slave.log
+parsing ./topos-1/2-switches.json.slave.log
+parsing ./topos-2/2-switches.json.slave.log
+parsing ./topos-3/2-switches.json.slave.log
+parsing ./topos-4/2-switches.json.slave.log
+parsing ./topos-5/2-switches.json.slave.log
+parsing ./topos-6/2-switches.json.slave.log
+parsing ./topos-7/2-switches.json.slave.log
+parsing ./topos-8/2-switches.json.slave.log
+parsing ./topos-9/2-switches.json.slave.log
+parsing ./topos-10/2-switches.json.slave.log
+parsing ./topos-1/5-switches.json.slave.log
+parsing ./topos-2/5-switches.json.slave.log
+parsing ./topos-3/5-switches.json.slave.log
+parsing ./topos-4/5-switches.json.slave.log
+parsing ./topos-5/5-switches.json.slave.log
+parsing ./topos-6/5-switches.json.slave.log
+parsing ./topos-7/5-switches.json.slave.log
+parsing ./topos-8/5-switches.json.slave.log
+parsing ./topos-9/5-switches.json.slave.log
+parsing ./topos-10/5-switches.json.slave.log
+parsing ./topos-1/10-switches.json.slave.log
+parsing ./topos-2/10-switches.json.slave.log
+parsing ./topos-3/10-switches.json.slave.log
+parsing ./topos-4/10-switches.json.slave.log
+parsing ./topos-5/10-switches.json.slave.log
+parsing ./topos-6/10-switches.json.slave.log
+parsing ./topos-7/10-switches.json.slave.log
+parsing ./topos-8/10-switches.json.slave.log
+parsing ./topos-9/10-switches.json.slave.log
+parsing ./topos-10/10-switches.json.slave.log
+parsing ./topos-1/20-switches.json.slave.log
+parsing ./topos-2/20-switches.json.slave.log
+parsing ./topos-3/20-switches.json.slave.log
+parsing ./topos-4/20-switches.json.slave.log
+parsing ./topos-5/20-switches.json.slave.log
+parsing ./topos-6/20-switches.json.slave.log
+parsing ./topos-7/20-switches.json.slave.log
+parsing ./topos-8/20-switches.json.slave.log
+parsing ./topos-9/20-switches.json.slave.log
+parsing ./topos-10/20-switches.json.slave.log

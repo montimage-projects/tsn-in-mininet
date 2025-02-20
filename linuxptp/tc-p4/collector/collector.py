@@ -88,7 +88,9 @@ def parse_int_reports(rawPayload):
         #parse our inband-network telemetry report
         if tlv.tlvType == PTP_TLV_INT_TYPE:
             report = INT(bytes(tlv.tlvData))
-            #print(report.switchId, report.ingressTstamp, report.ingressTstamp)
+            #print(report.switchId, report.ingressTstamp, report.egressTstamp)
+            if report.ingressTstamp >= report.egressTstamp:
+                print(f"IMPOSSIBLE: ingressTs >= egressTs at switchId={report.switchId}")
             reports.append( report )
 
     return reports
